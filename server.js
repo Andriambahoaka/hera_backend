@@ -44,7 +44,7 @@ server.on('listening', () => {
   console.log('Listening on ' + bind);
 });
 
-server.listen(port);
+server.listen(port,'0.0.0.0');
 // CORS : Cross Origin Ressource Shraring 
 // Nécéssaire à partir du moment ou le back end and front end ne partage pas la même origine
 // En tetes http, un système de sécurité pour bloquer les requetes malveillants
