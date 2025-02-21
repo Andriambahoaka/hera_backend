@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: process.env.GMAIL_USER,             // Your Gmail address from the .env file 
+        user: process.env.GMAIL_USER,        
         pass: process.env.GMAIL_PASS,  
     }
 });
@@ -67,7 +67,7 @@ exports.forgotPassword = (req, res) => {
             return res.status(404).json({ message: 'Utilisateur non trouvé' });
         }
         const token = jwt.sign({ userId: user._id }, 'RESET_PASSWORD_SECRET', { expiresIn: '1h' });
-        const resetLink = `yourapp://reset-password?token=${token}`;
+        const resetLink = `hera://reset-password?token=${token}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
