@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const userRoutes = require('./routes/user');
+require('dotenv').config();
 
 mongoose.connect('mongodb+srv://maheryj23:He06zvvoqJSlT88s@cluster0.xklfy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
   .then(() => console.log('Connexion à MongoDB réussie !'))
