@@ -1,6 +1,10 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
 const User = require('../models/User');
+const UserType = require('../models/UserType');
+
+
 require('dotenv').config();   
 const nodemailer = require('nodemailer');
 
@@ -13,20 +17,25 @@ const transporter = nodemailer.createTransport({
         pass: process.env.GMAIL_PASS,  
     }
 });
+
 exports.signup = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const user = new User({
+                name: req.body.name,
                 email: req.body.email,
-                password: hash
+                password: hash,
+                phoneNumber: req.body.phoneNumber || null,
+                memberList: req.body.memberList || [],
+                packList: req.body.packList || [],
+                userType: req.body.userType // Expecting an ObjectId reference
             });
-            user.save()
-                .then(() => res.status(200).json({ message: 'Utilisateur créé' }))
-                .catch(error => res.status(400).json({ error }));
-        })
-        .catch(error => res.status(500).json({ error }));
-};
 
+            return user.save();
+        })
+        .then(() => res.status(201).json({ message: 'Utilisateur créé avec succès' }))
+        .catch((error) => res.status(400).json({ error }));
+};
 
 exports.login = (req, res, next) => {
     User.findOne({ email: req.body.email })
@@ -97,4 +106,20 @@ exports.updatePassword = (req, res) => {
                 .catch(error => res.status(500).json({ error }));
         }).catch(error => res.status(500).json({ error }));
     });
+};
+
+exports.addUserType = (req, res, next) => {
+    const { type_id, name } = req.body;
+
+    // Check if required fields are provided
+    if (!type_id || !name) {
+        return res.status(400).json({ message: 'type_id and name are required' });
+    }
+
+    // Create a new UserType
+    const userType = new UserType({ type_id, name });
+
+    userType.save()
+        .then(() => res.status(201).json({ message: 'UserType created successfully', userType }))
+        .catch(error => res.status(400).json({ error }));
 };

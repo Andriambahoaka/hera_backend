@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const userRoutes = require('./routes/user');
+const userTypeRoutes = require('./routes/userType');
+
 require('dotenv').config();
 
 mongoose.connect('mongodb+srv://maheryj23:He06zvvoqJSlT88s@cluster0.xklfy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
@@ -35,5 +37,7 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 app.use('/api/auth', userRoutes);
+app.use('/api/userType', userTypeRoutes);
+
 
 module.exports = app;
