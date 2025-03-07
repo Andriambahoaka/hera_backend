@@ -7,6 +7,7 @@ router.post('/signup',userCtrl.signup);
 router.post('/login',userCtrl.login);
 router.post('/update-password', userCtrl.updatePassword);
 router.post('/forgot-password', userCtrl.forgotPassword);
+router.post('/profile', userCtrl.forgotPassword);
 
 module.exports = router;
 
