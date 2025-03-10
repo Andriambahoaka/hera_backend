@@ -59,7 +59,7 @@ exports.login = (req, res, next) => {
                         token: token,
                         user: {
                             _id: user._id,
-                            name: user.name,
+                            name: "user.name",
                             email: user.email,
                             phoneNumber: user.phoneNumber,
                             userType: user.userType,
@@ -98,18 +98,35 @@ exports.forgotPassword = (req, res) => {
 };
 
 exports.updatePassword = (req, res) => {
-    const { token, newPassword } = req.body;
+    // Get the token from the Authorization header
+    const authHeader = req.headers['authorization'];
+
+    // Check if the Authorization header is present and starts with "Bearer"
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(400).json({ message: 'Token manquant ou mal formé' });
+    }
+
+    // Extract the token from the Authorization header
+    const token = authHeader.split(' ')[1]; // Get the part after "Bearer"
+
+    const { newPassword } = req.body; // Assuming newPassword is sent in the body
+
+    // Verify the token using JWT
     jwt.verify(token, 'RESET_PASSWORD_SECRET', (err, decoded) => {
         if (err) {
             return res.status(400).json({ message: 'Token invalide ou expiré' });
         }
+
+        // Hash the new password
         bcrypt.hash(newPassword, 10).then(hash => {
+            // Update the user's password in the database
             User.findByIdAndUpdate(decoded.userId, { password: hash })
                 .then(() => res.status(200).json({ message: 'Mot de passe mis à jour' }))
                 .catch(error => res.status(500).json({ error }));
         }).catch(error => res.status(500).json({ error }));
     });
 };
+
 
 exports.addUserType = (req, res, next) => {
     const { type_id, name } = req.body;
