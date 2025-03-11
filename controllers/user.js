@@ -63,7 +63,8 @@ exports.login = (req, res, next) => {
                             email: user.email,
                             phoneNumber: user.phoneNumber,
                             userType: user.userType,
-                            ownerId: user.ownerId
+                            ownerId: user.ownerId,
+                            firstLogin :user.firstLogin
                         }
                     });
                 })
@@ -108,22 +109,21 @@ exports.updatePassword = (req, res) => {
 
     // Extract the token from the Authorization header
     const token = authHeader.split(' ')[1]; // Get the part after "Bearer"
-
     const { newPassword } = req.body; // Assuming newPassword is sent in the body
 
     // Verify the token using JWT
-    jwt.verify(token, 'RESET_PASSWORD_SECRET', (err, decoded) => {
+    jwt.verify(token, 'RANDOM_TOKEN_SECRET', (err, decoded) => {
         if (err) {
-            return res.status(400).json({ message: 'Token invalide ou expiré' });
+            return res.status(400).json({ message: 'Token invalide ou expiré' + err});
         }
 
         // Hash the new password
         bcrypt.hash(newPassword, 10).then(hash => {
             // Update the user's password in the database
-            User.findByIdAndUpdate(decoded.userId, { password: hash })
+            User.findByIdAndUpdate(decoded.userId, { password: hash, firstLogin: false})
                 .then(() => res.status(200).json({ message: 'Mot de passe mis à jour' }))
-                .catch(error => res.status(500).json({ error }));
-        }).catch(error => res.status(500).json({ error }));
+                .catch((error) => res.status(500).json({ error }));
+        }).catch((error) => res.status(500).json({ error }));
     });
 };
 
@@ -143,5 +143,6 @@ exports.addUserType = (req, res, next) => {
         .then(() => res.status(201).json({ message: 'UserType created successfully', userType }))
         .catch(error => res.status(400).json({ error }));
 };
+
 
 
