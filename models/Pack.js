@@ -1,10 +1,17 @@
 const mongoose = require('mongoose');
 
-const packSchema = mongoose.Schema({
-    pack_id: { type: Number, required: true, unique: true },
+const deviceSchema = mongoose.Schema({
+    serialNumber: { type: String, required: true, unique: true },
     name: { type: String, required: true },
-    deviceList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Device' }],
-    accessList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Access' }]
+    type: {
+        name: { type: String, required: true },
+        type_id: { type: Number, required: true }
+    }
+});
+
+const packSchema = mongoose.Schema({
+    name: { type: String, required: true },
+    deviceList: [deviceSchema]
 });
 
 module.exports = mongoose.model('Pack', packSchema);

@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 
 const userRoutes = require('./routes/user');
 const userTypeRoutes = require('./routes/userType');
+const packRoutes = require('./routes/pack');
 
 require('dotenv').config();
 
@@ -37,5 +38,6 @@ app.use(bodyParser.json());
 
 app.use('/api/auth', userRoutes);
 app.use('/api/userType', userTypeRoutes);
+app.use('/api/packs', packRoutes);
 
 module.exports = app;
