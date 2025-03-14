@@ -31,7 +31,7 @@ exports.addPack = (req, res, next) => {
 };
 
 // Controller function to get all packs
-exports.getAllPacks = (req, res, next) => {
+exports.findAll = (req, res, next) => {
     // Use Mongoose to find all packs in the database
     Pack.find()
         .then(packs => {
@@ -42,6 +42,26 @@ exports.getAllPacks = (req, res, next) => {
             // If an error occurs, return an error message
             res.status(500).json({ error: 'Error retrieving packs: ' + error.message });
         });
+};
+
+
+exports.findAllByOwner = (req, res, next) => {
+  const { ownerId } = req.params; // Récupération de l'ID du propriétaire depuis les paramètres de la requête
+
+  if (!ownerId) {
+      return res.status(400).json({ message: "L'ownerId est requis." });
+  }
+
+  Pack.find({ ownerId })
+      .then(packs => {
+          if (packs.length === 0) {
+              return res.status(404).json({ message: "Aucun pack trouvé pour cet ownerId." });
+          }
+          res.status(200).json({ message: 'Packs récupérés avec succès', packs });
+      })
+      .catch(error => {
+          res.status(500).json({ error: 'Erreur lors de la récupération des packs: ' + error.message });
+      });
 };
 
 

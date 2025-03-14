@@ -4,7 +4,8 @@ const router = express.Router();
 const packCtrl = require('../controllers/pack');
 
 router.post('/',packCtrl.addPack);
-router.get('/',packCtrl.getAllPacks);
+router.get('/',packCtrl.findAll);
+router.get('/owner/:ownerId',packCtrl.findAllByOwner);
 router.post('/access',packCtrl.addOrUpdatePackAccess);
 
 module.exports = router;
