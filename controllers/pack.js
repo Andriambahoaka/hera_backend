@@ -45,32 +45,38 @@ exports.getAllPacks = (req, res, next) => {
 };
 
 
-exports.addPackAccess = async (req, res) => {
-    const { userId, packId, access } = req.body;
-  
-    // Check if required fields are provided
-    if (!userId || !packId || !access) {
-      return res.status(400).json({ message: "userId, packId, and access are required" });
-    }
-  
-    try {
-      // Create a new PackAccess document
-      const newPackAccess = new PackAccess({
-        userId,
-        packId,
-        access
-      });
-  
-      // Save the new PackAccess to the database
-      await newPackAccess.save();
-  
-      // Return success response
-      res.status(201).json({
-        message: "PackAccess added successfully!",
-        packAccess: newPackAccess
-      });
-    } catch (error) {
+exports.addOrUpdatePackAccess = async (req, res) => {
+  const { userId, packId, access } = req.body;
+
+  // Vérification des champs requis
+  if (!userId || !packId || !access) {
+      return res.status(400).json({ message: "userId, packId, et access sont requis" });
+  }
+
+  try {
+      // Vérifier si un accès existe déjà pour cet utilisateur et ce pack
+      let packAccess = await PackAccess.findOne({ userId, packId });
+
+      if (packAccess) {
+          // Mettre à jour l'accès existant
+          packAccess.access = access;
+          await packAccess.save();
+          return res.status(200).json({
+              message: "PackAccess mis à jour avec succès !",
+              packAccess
+          });
+      } else {
+          // Créer un nouvel accès
+          packAccess = new PackAccess({ userId, packId, access });
+          await packAccess.save();
+          return res.status(201).json({
+              message: "PackAccess ajouté avec succès !",
+              packAccess
+          });
+      }
+  } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Error adding PackAccess", error });
-    }
-  };
+      res.status(500).json({ message: "Erreur lors de l'enregistrement du PackAccess", error });
+  }
+};
+

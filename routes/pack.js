@@ -5,6 +5,6 @@ const packCtrl = require('../controllers/pack');
 
 router.post('/',packCtrl.addPack);
 router.get('/',packCtrl.getAllPacks);
-router.post('/access',packCtrl.addPackAccess);
+router.post('/access',packCtrl.addOrUpdatePackAccess);
 
 module.exports = router;

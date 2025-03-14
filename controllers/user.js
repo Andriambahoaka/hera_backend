@@ -127,7 +127,6 @@ exports.updatePassword = (req, res) => {
     });
 };
 
-
 exports.addUserType = (req, res, next) => {
     const { type_id, name } = req.body;
 
@@ -143,7 +142,6 @@ exports.addUserType = (req, res, next) => {
         .then(() => res.status(201).json({ message: 'UserType created successfully', userType }))
         .catch(error => res.status(400).json({ error }));
 };
-
 
 exports.findAll = (req, res) => {
     User.find()
