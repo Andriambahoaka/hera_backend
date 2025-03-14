@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const UserType = require('../models/UserType');
 
-require('dotenv').config();   
+require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
@@ -12,8 +12,8 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: process.env.GMAIL_USER,        
-        pass: process.env.GMAIL_PASS,  
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
     }
 });
 
@@ -26,13 +26,13 @@ exports.signup = (req, res, next) => {
                 password: hash,
                 phoneNumber: req.body.phoneNumber || null,
                 userType: req.body.userType,
-                ownerId : req.body.ownerId
+                ownerId: req.body.ownerId
             });
             return user.save();
         })
-        .then(user => res.status(201).json({ 
+        .then(user => res.status(201).json({
             message: 'User created with success',
-            userId: user._id  
+            userId: user._id
         }))
         .catch((error) => res.status(400).json({ error }));
 };
@@ -64,7 +64,7 @@ exports.login = (req, res, next) => {
                             phoneNumber: user.phoneNumber,
                             userType: user.userType,
                             ownerId: user.ownerId,
-                            firstLogin :user.firstLogin
+                            firstLogin: user.firstLogin
                         }
                     });
                 })
@@ -114,13 +114,13 @@ exports.updatePassword = (req, res) => {
     // Verify the token using JWT
     jwt.verify(token, 'RANDOM_TOKEN_SECRET', (err, decoded) => {
         if (err) {
-            return res.status(400).json({ message: 'Token invalide ou expiré' + err});
+            return res.status(400).json({ message: 'Token invalide ou expiré' + err });
         }
 
         // Hash the new password
         bcrypt.hash(newPassword, 10).then(hash => {
             // Update the user's password in the database
-            User.findByIdAndUpdate(decoded.userId, { password: hash, firstLogin: false})
+            User.findByIdAndUpdate(decoded.userId, { password: hash, firstLogin: false })
                 .then(() => res.status(200).json({ message: 'Mot de passe mis à jour' }))
                 .catch((error) => res.status(500).json({ error }));
         }).catch((error) => res.status(500).json({ error }));
@@ -142,6 +142,19 @@ exports.addUserType = (req, res, next) => {
     userType.save()
         .then(() => res.status(201).json({ message: 'UserType created successfully', userType }))
         .catch(error => res.status(400).json({ error }));
+};
+
+
+exports.findAll = (req, res) => {
+    User.find()
+        .then(users => {
+            // If packs are found, return them
+            res.status(200).json({ message: 'Users retrieved successfully', users });
+        })
+        .catch(error => {
+            // If an error occurs, return an error message
+            res.status(500).json({ error: 'Error retrieving users: ' + error.message });
+        });
 };
 
 

@@ -3,7 +3,7 @@ const PackAccess = require('../models/PackAccess');
 
 // Controller function to add a pack with devices
 exports.addPack = (req, res, next) => {
-    const { name, devices } = req.body;
+    const {ownerId,  name, devices } = req.body;
 
     // Check if required fields are provided
     if (!name || !devices || !Array.isArray(devices)) {
@@ -19,6 +19,7 @@ exports.addPack = (req, res, next) => {
 
     // Create a new Pack
     const newPack = new Pack({
+      ownerId : ownerId,
         name,
         deviceList: devices
     });

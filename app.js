@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const userRoutes = require('./routes/user');
+const authRoutes = require('./routes/auth');
 const userTypeRoutes = require('./routes/userType');
 const packRoutes = require('./routes/pack');
 
@@ -13,8 +14,6 @@ mongoose.connect('mongodb+srv://maheryj23:He06zvvoqJSlT88s@cluster0.xklfy.mongod
   .catch((error) => console.log(error));
 
 const app = express();
-
-
 //progiciel 
 //Intergiciels (« Middleware »)¶ Les intergiciels représentent un système de points d'entrée dans le traitement des requêtes et des réponses
 
@@ -36,8 +35,9 @@ app.use((req, res, next) => {
 //La méthode app.use() vous permet d'attribuer un middleware à une route spécifique de votre application.
 app.use(bodyParser.json());
 
-app.use('/api/auth', userRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/userType', userTypeRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/packs', packRoutes);
 
 module.exports = app;

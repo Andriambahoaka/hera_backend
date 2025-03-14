@@ -9,7 +9,7 @@ const userSchema = mongoose.Schema({
     password: { type: String, required: true },
     phoneNumber: { type: String },
     userType: { type: Number, required: true },
-    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    ownerId: { type: String,default: null},
     firstLogin: { type: Boolean, default: true }
 });
 
