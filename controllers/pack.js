@@ -21,7 +21,7 @@ exports.addPack = (req, res, next) => {
     const newPack = new Pack({
       ownerId : ownerId,
         name,
-        deviceList: devices
+        devices: devices
     });
 
     // Save the new pack to the database

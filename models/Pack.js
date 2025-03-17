@@ -12,7 +12,7 @@ const deviceSchema = mongoose.Schema({
 const packSchema = mongoose.Schema({
     ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required : true},
     name: { type: String, required: true },
-    deviceList: [deviceSchema]
+    devices: [deviceSchema]
 });
 
 module.exports = mongoose.model('Pack', packSchema);
