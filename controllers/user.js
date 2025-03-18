@@ -59,7 +59,7 @@ exports.login = (req, res, next) => {
                         token: token,
                         user: {
                             _id: user._id,
-                            name: "user.name",
+                            name: user.name,
                             email: user.email,
                             phoneNumber: user.phoneNumber,
                             userType: user.userType,

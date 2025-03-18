@@ -10,7 +10,7 @@ const accessSchema = mongoose.Schema({
 const packAccessSchema = mongoose.Schema({
     userId : {type : mongoose.Schema.Types.ObjectId, ref : 'User'},
     packId :  {type : mongoose.Schema.Types.ObjectId, ref : 'Pack'},
-    isActivated: { type: Boolean, required: true },
+    hasAccess: { type: Boolean, required: true },
     access : [accessSchema]
 });
 
