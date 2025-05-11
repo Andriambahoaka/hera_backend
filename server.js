@@ -45,15 +45,3 @@ server.on('listening', () => {
 });
 
 server.listen(port,'0.0.0.0');
-// CORS : Cross Origin Ressource Shraring 
-// Nécéssaire à partir du moment ou le back end and front end ne partage pas la même origine
-// En tetes http, un système de sécurité pour bloquer les requetes malveillants
-
-//CORS signifie « Cross Origin Resource Sharing ».
-// Il s'agit d'un système de sécurité qui, par défaut, 
-// bloque les appels HTTP entre des serveurs différents,
- // ce qui empêche donc les requêtes malveillantes
- //  d accéder à des ressources sensibles auquels ils n'ont pas le droit d'accès. Dans notre cas,
- ////   nous avons deux origines : localhost:3000 et localhost:4200 , 
-   // et nous souhaiterions qu'elles puissent communiquer entre elles. 
-   // Pour cela, nous devons ajouter des headers à notre objet  response .

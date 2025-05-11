@@ -1,6 +1,8 @@
 
 const Notification = require('../models/Notification');
 const admin = require('../config/firebase.js');
+const Pack = require('../models/Pack');
+const User = require('../models/User');
 
 
 const getMessageBodyFromMsgType = (msgType) => {
@@ -17,31 +19,56 @@ const getMessageBodyFromMsgType = (msgType) => {
   };
 
 
-
-
-exports.postNotification = async (req, res) => {
+  exports.postNotification = async (req, res) => {
     try {
       const notification = new Notification(req.body);
       await notification.save();
-
+  
+      const { deviceId } = req.body;
+  
+      // Étape 1 : Trouver le pack qui contient ce deviceId
+      const pack = await Pack.findOne({ 'devices.deviceId': deviceId });
+  
+      if (!pack) {
+        return res.status(404).json({ error: 'Pack contenant ce deviceId introuvable.' });
+      }
+  
+      const ownerId = pack.ownerId;
+  
+      // Étape 2 : Trouver l'utilisateur propriétaire
+      const user = await User.findById(ownerId);
+  
+      if (!user || !user.devicesToken || user.devicesToken.length === 0) {
+        return res.status(404).json({ error: 'Utilisateur ou tokens introuvables.' });
+      }
+  
       const body = getMessageBodyFromMsgType(notification.msgType);
-
+      const tokens = user.devicesToken;
+  
+      // Étape 3 : Envoyer à tous les tokens FCM
       const message = {
-        token: "f1AjY6geScq4eqydeZG0p3:APA91bG31b1p6xjkE6HltXGgwTsV2IUGH9Dshdn8htqK68Y1p2TTopZNPR9OgpHJY0kGtZT8F8B-ZlF2oXrIBJR08zdO0K9qYJL5IY5a5_DsbwDKMu3RPdc",
         notification: {
           title: `Alerte - ${notification.msgType}`,
-          body: body,
+          body,
         },
         data: {
           deviceId: notification.deviceId,
           alarmType: notification.alarmType || '',
         },
+        tokens, // multiple tokens
       };
-
-      await admin.messaging().send(message);
-      res.status(201).json({ message: 'Notification created', data: notification });
+  
+      const response = await admin.messaging().sendEachForMulticast(message);
+      console.log(`Notifications envoyées: ${response.successCount} succès, ${response.failureCount} échecs`);
+  
+      res.status(201).json({
+        message: 'Notification créée et envoyée',
+        notification,
+        fcmResponse: response,
+      });
+  
     } catch (error) {
-      console.error('Error creating notification:', error);
-      res.status(400).json({ error: 'Failed to create notification', details: error.message });
+      console.error('Erreur:', error);
+      res.status(500).json({ error: 'Échec lors de la création ou de l’envoi de la notification', details: error.message });
     }
   };

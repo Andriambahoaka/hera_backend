@@ -10,7 +10,8 @@ const userSchema = mongoose.Schema({
     phoneNumber: { type: String },
     userType: { type: Number, required: true },
     ownerId: { type: String,default: null},
-    firstLogin: { type: Boolean, default: true }
+    firstLogin: { type: Boolean, default: true },
+    devicesToken:[String]
 });
 
 userSchema.plugin(uniqueValidator);

@@ -12,8 +12,8 @@ exports.addPack = (req, res, next) => {
 
     // Check if devices array contains all required fields
     for (let device of devices) {
-        if (!device.deviceId || !device.name || !device.type || !device.type.id) {
-            return res.status(400).json({ message: 'Each device must have deviceId, name, and type with id' });
+        if (!device.deviceId || !device.devicePassword) {
+            return res.status(400).json({ message: 'Each device must have deviceId, devicePassword' });
         }
     }
 

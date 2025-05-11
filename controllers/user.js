@@ -156,4 +156,34 @@ exports.findAll = (req, res) => {
 };
 
 
+exports.addDeviceToken = async (req, res) => {
+  try {
+    const { userId, deviceToken } = req.body;
+
+    if (!userId || !deviceToken) {
+      return res.status(400).json({ error: 'userId et deviceToken sont requis.' });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+    }
+
+    // Évite les doublons
+    if (!user.devicesToken.includes(deviceToken)) {
+      user.devicesToken.push(deviceToken);
+      await user.save();
+    }
+
+    res.status(200).json({ message: 'Token ajouté avec succès.', devicesToken: user.devicesToken });
+  } catch (error) {
+    console.error('Erreur lors de l’ajout du token :', error);
+    res.status(500).json({ error: 'Erreur serveur', details: error.message });
+  }
+};
+
+
+
+
 

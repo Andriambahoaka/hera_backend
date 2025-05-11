@@ -35,8 +35,7 @@ const notificationSchema = new mongoose.Schema({
   },
   id: {
     type: mongoose.Schema.Types.Decimal128,
-    required: true,
-    unique: true,
+    required: true
   },
   alarmType: {
     type: String,

@@ -2,11 +2,8 @@ const mongoose = require('mongoose');
 
 const deviceSchema = mongoose.Schema({
     deviceId: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    type: {
-        id: { type: Number, required: true },
-        name: { type: String }
-    }
+    devicePassword: { type: String, required: true },
+    deviceType: { type: String }
 });
 
 const packSchema = mongoose.Schema({
