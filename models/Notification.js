@@ -1,45 +1,37 @@
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
+  pack: {
+    _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+    name: { type: String, required: true },
+    ownerId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  },
   accessKey: {
-    type: String,
-    required: true,
+    type: String
   },
   productId: {
-    type: String,
-    required: true,
+    type: String
   },
   category: {
-    type: String,
-    required: true,
+    type: String
   },
   msgType: {
-    type: String,
-    required: true,
+    type: String
   },
   deviceId: {
-    type: String,
-    required: true,
+    type: String
   },
   channelId: {
-    type: Number,
-    required: true,
+    type: Number
   },
   utcTime: {
-    type: Number,
-    required: true,
+    type: Number
   },
   localTime: {
-    type: Number,
-    required: true,
-  },
-  id: {
-    type: mongoose.Schema.Types.Decimal128,
-    required: true
+    type: Number
   },
   alarmType: {
-    type: String,
-    required: true,
+    type: String
   },
 }, {
   timestamps: true, // adds createdAt and updatedAt

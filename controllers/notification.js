@@ -21,21 +21,31 @@ const getMessageBodyFromMsgType = (msgType) => {
 
   exports.postNotification = async (req, res) => {
     try {
-      const notification = new Notification(req.body);
-      await notification.save();
-  
+
       const { deviceId } = req.body;
-  
-      // Étape 1 : Trouver le pack qui contient ce deviceId
-      const pack = await Pack.findOne({ 'devices.deviceId': deviceId });
-  
+
+      const pack = await Pack.findOne(
+        { 'devices.deviceId': deviceId }
+      ).select('_id name ownerId');
+      
+
       if (!pack) {
         return res.status(404).json({ error: 'Pack contenant ce deviceId introuvable.' });
       }
+
+      const notification = new Notification({
+        ...req.body,
+        pack: {
+          _id: pack._id,
+          name: pack.name,
+          ownerId: pack.ownerId,
+        },
+      });
+
+      await notification.save();
   
       const ownerId = pack.ownerId;
-  
-      // Étape 2 : Trouver l'utilisateur propriétaire
+
       const user = await User.findById(ownerId);
   
       if (!user || !user.devicesToken || user.devicesToken.length === 0) {
@@ -45,7 +55,6 @@ const getMessageBodyFromMsgType = (msgType) => {
       const body = getMessageBodyFromMsgType(notification.msgType);
       const tokens = user.devicesToken;
   
-      // Étape 3 : Envoyer à tous les tokens FCM
       const message = {
         notification: {
           title: `Alerte - ${notification.msgType}`,
@@ -70,5 +79,19 @@ const getMessageBodyFromMsgType = (msgType) => {
     } catch (error) {
       console.error('Erreur:', error);
       res.status(500).json({ error: 'Échec lors de la création ou de l’envoi de la notification', details: error.message });
+    }
+  };
+
+
+  exports.findAllByOwner = async (req, res) => {
+    try {
+      const { ownerId } = req.params;
+  
+      const notifications = await Notification.find({ 'pack.ownerId': ownerId });
+  
+      res.status(200).json(notifications);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des notifications :', error);
+      res.status(500).json({ error: 'Erreur serveur' });
     }
   };
