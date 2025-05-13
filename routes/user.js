@@ -4,7 +4,8 @@ const router = express.Router();
 const userCtrl = require('../controllers/user');
 
 router.get('/',userCtrl.findAll);
-router.post('/add-device-token',userCtrl.addDeviceToken);
+router.post('/device-token',userCtrl.addDeviceToken);
+router.delete('/device-token', userCtrl.deleteDeviceToken); 
 
 module.exports = router;
 

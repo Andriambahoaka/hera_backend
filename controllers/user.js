@@ -184,6 +184,42 @@ exports.addDeviceToken = async (req, res) => {
 };
 
 
+exports.deleteDeviceToken = async (req, res) => {
+    try {
+      const { userId, deviceToken } = req.body;
+  
+      if (!userId || !deviceToken) {
+        return res.status(400).json({ error: 'userId et deviceToken sont requis.' });
+      }
+  
+      const user = await User.findById(userId);
+  
+      if (!user) {
+        return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+      }
+  
+      const initialLength = user.devicesToken.length;
+  
+      // Supprimer tous les tokens correspondants
+      user.devicesToken = user.devicesToken.filter(token => token !== deviceToken);
+  
+      if (user.devicesToken.length === initialLength) {
+        return res.status(404).json({ message: 'Token non trouvé dans la liste.' });
+      }
+  
+      await user.save();
+  
+      res.status(200).json({
+        message: 'Token supprimé avec succès.',
+        devicesToken: user.devicesToken,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression du token :', error);
+      res.status(500).json({ error: 'Erreur serveur', details: error.message });
+    }
+  };
+
+
 
 
 
