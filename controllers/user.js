@@ -17,25 +17,37 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-exports.signup = (req, res, next) => {
-    bcrypt.hash(req.body.password, 10)
-        .then(hash => {
-            const user = new User({
-                name: req.body.name,
-                email: req.body.email,
-                password: hash,
-                phoneNumber: req.body.phoneNumber || null,
-                userType: req.body.userType,
-                ownerId: req.body.ownerId
-            });
-            return user.save();
-        })
-        .then(user => res.status(201).json({
-            message: 'User created with success',
-            userId: user._id
-        }))
-        .catch((error) => res.status(400).json({ error }));
+exports.signup = async (req, res) => {
+  try {
+    const { name, email, password, phoneNumber, userType, ownerId } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Un utilisateur avec cet email existe déjà.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      phoneNumber: phoneNumber || null,
+      userType,
+      ownerId
+    });
+
+    const savedUser = await user.save();
+    res.status(201).json({
+      message: 'Utilisateur créé avec succès.',
+      userId: savedUser._id
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur serveur', details: error.message });
+  }
 };
+
 
 exports.login = (req, res, next) => {
     User.findOne({ email: req.body.email })
@@ -154,6 +166,20 @@ exports.findAll = (req, res) => {
             res.status(500).json({ error: 'Error retrieving users: ' + error.message });
         });
 };
+
+exports.findAllByOwner = async (req, res) => {
+  const { ownerId } = req.params;
+
+  try {
+    const members = await User.find({ ownerId });
+    res.status(200).json(members);
+  } catch (error) {
+    res.status(500).json({
+      error: `Error retrieving members: ${error.message}`,
+    });
+  }
+};
+
 
 
 exports.addDeviceToken = async (req, res) => {

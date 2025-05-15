@@ -4,7 +4,6 @@ const admin = require('../config/firebase.js');
 const Pack = require('../models/Pack');
 const User = require('../models/User');
 
-
 const getMessageBodyFromMsgType = (msgType, packName) => {
   const messages = {
     RCEmergencyCall: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
