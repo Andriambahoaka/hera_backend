@@ -7,5 +7,6 @@ router.post('/',packCtrl.addPack);
 router.get('/',packCtrl.findAll);
 router.get('/owner/:ownerId',packCtrl.findAllByOwner);
 router.post('/access',packCtrl.addOrUpdatePackAccess);
+router.get('/access/:userId',packCtrl.findAllPackAccessByUser);
 
 module.exports = router;

@@ -66,37 +66,78 @@ exports.findAllByOwner = (req, res, next) => {
 
 
 exports.addOrUpdatePackAccess = async (req, res) => {
-    const { userId, packId, access } = req.body;
+  const accessList = req.body; // array of access entries from Flutter
 
-    // Vérification des champs requis
-    if (!userId || !packId || !access) {
-        return res.status(400).json({ message: "userId, packId, et access sont requis" });
+  if (!Array.isArray(accessList) || accessList.length === 0) {
+    return res.status(400).json({ message: "La liste d'accès est requise." });
+  }
+
+  try {
+    const results = [];
+
+    for (const accessItem of accessList) {
+      const { userId, packId, hasAccess, access } = accessItem;
+
+      if (!userId || !packId || typeof hasAccess !== "boolean" || !Array.isArray(access)) {
+        results.push({ status: "error", message: `Entrée invalide: ${JSON.stringify(accessItem)}` });
+        continue;
+      }
+
+      let packAccess = await PackAccess.findOne({ userId, packId });
+
+      if (packAccess) {
+        packAccess.hasAccess = hasAccess;
+        packAccess.access = access;
+        await packAccess.save();
+        results.push({ status: "updated", packId });
+      } else {
+        packAccess = new PackAccess({ userId, packId, hasAccess, access });
+        await packAccess.save();
+        results.push({ status: "created", packId });
+      }
     }
 
-    try {
-        // Vérifier si un accès existe déjà pour cet utilisateur et ce pack
-        let packAccess = await PackAccess.findOne({ userId, packId });
+    return res.status(200).json({
+      message: "PackAccess list processed successfully.",
+      results,
+    });
 
-        if (packAccess) {
-            // Mettre à jour l'accès existant
-            packAccess.access = access;
-            await packAccess.save();
-            return res.status(200).json({
-                message: "PackAccess mis à jour avec succès !",
-                packAccess
-            });
-        } else {
-            // Créer un nouvel accès
-            packAccess = new PackAccess({ userId, packId, access });
-            await packAccess.save();
-            return res.status(201).json({
-                message: "PackAccess ajouté avec succès !",
-                packAccess
-            });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Erreur lors de l'enregistrement du PackAccess", error });
-    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Erreur serveur lors du traitement des accès aux packs.",
+      error: error.message,
+    });
+  }
 };
+
+exports.findAllPackAccessByUser = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ message: "userId est requis." });
+  }
+
+  try {
+    const accessList = await PackAccess.find({ userId });
+
+    if (accessList.length === 0) {
+      return res.status(404).json({ message: "Aucun accès trouvé pour cet utilisateur." });
+    }
+
+    res.status(200).json({
+      message: "Accès trouvés avec succès.",
+      accessList
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Erreur serveur lors de la récupération des accès.",
+      error: error.message
+    });
+  }
+};
+
+
 

@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 // Define the Access schema 
 const accessSchema = mongoose.Schema({
     id: { type: Number, required: true },
-    label: { type: String, required: true },
     isSelected: { type: Boolean, required: true }
 });
 
