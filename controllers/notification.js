@@ -4,13 +4,14 @@ const admin = require('../config/firebase.js');
 const Pack = require('../models/Pack');
 const User = require('../models/User');
 
-const getMessageBodyFromMsgType = (msgType, packName) => {
+const getMessageBodyFromMsgType = (msgType, packName,userName) => {
   const messages = {
     RCEmergencyCall: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
-    armed: `Votre centrale dans "${packName}" vient d'être armée`,
-    disarmed: `Votre centrale dans "${packName}" vient d'être désarmée`,
+    armed: `Votre centrale dans "${packName}" vient d'être armée par "${userName}"`,
+    disarmed: `Votre centrale dans "${packName}" vient d'être désarmée par "${userName}"`,
     online: `Votre centrale dans "${packName}" vient d'être allumée`,
     offline: `Votre centrale dans "${packName}" vient d'être éteinte`,
+    SensorAbnormal: `Une tentative d'altération d'un accessoire a été détectée à "${packName}"`,
   };
 
   return messages[msgType] || 'Nouvelle notification reçue';
@@ -28,6 +29,8 @@ const getMessageTitleFromMsgType = (msgType) => {
       return 'Allumage de l\'alarme';
     case 'offline':
       'Extinction de l\'alarme';
+    case 'SensorAbnormal':
+      'Autoprotection déclenchée';
     default:
       return 'Hera';
   }
@@ -37,7 +40,7 @@ const getMessageTitleFromMsgType = (msgType) => {
 exports.postNotification = async (req, res) => {
   try {
 
-    const { deviceId } = req.body;
+    const { deviceId,userName} = req.body;
 
     const pack = await Pack.findOne(
       { 'devices.deviceId': deviceId }
@@ -68,7 +71,7 @@ exports.postNotification = async (req, res) => {
     }
 
     const title = getMessageTitleFromMsgType(notification.msgType);
-    const body = getMessageBodyFromMsgType(notification.msgType,pack.name);
+    const body = getMessageBodyFromMsgType(notification.msgType,pack.name,userName);
     const tokens = user.devicesToken;
 
     const message = {
