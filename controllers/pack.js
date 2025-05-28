@@ -23,6 +23,33 @@ exports.addPack = (req, res, next) => {
     .catch(error => res.status(400).json({ error: 'Error creating pack: ' + error.message, newPack }));
 };
 
+
+exports.editUrgencyNumber = async (req, res, next) => {
+  const { deviceId, urgencyNumber } = req.body;
+
+  // Vérification des champs requis
+  if (!deviceId) {
+    return res.status(400).json({ message: 'deviceId is required' });
+  }
+
+  try {
+    const updatedPack = await Pack.findOneAndUpdate(
+      { deviceId: deviceId },
+      { urgencyNumber: urgencyNumber ?? "17" }, // Si urgencyNumber est null/undefined, on met "17"
+      { new: true } // Retourner le document mis à jour
+    );
+
+    if (!updatedPack) {
+      return res.status(404).json({ message: 'Pack not found with the provided deviceId' });
+    }
+
+    res.status(200).json({ message: 'Urgency number updated successfully', updatedPack });
+  } catch (error) {
+    res.status(500).json({ error: 'Error updating urgency number: ' + error.message });
+  }
+};
+
+
 // Controller function to get all packs
 exports.findAll = (req, res, next) => {
   // Use Mongoose to find all packs in the database

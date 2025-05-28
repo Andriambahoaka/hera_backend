@@ -8,5 +8,6 @@ router.get('/',packCtrl.findAll);
 router.get('/owner/:ownerId',packCtrl.findAllByOwner);
 router.post('/access',packCtrl.addOrUpdatePackAccess);
 router.get('/access/:userId',packCtrl.findAllPackAccessByUser);
+router.put('/urgency-number',packCtrl.editUrgencyNumber);
 
 module.exports = router;
