@@ -4,18 +4,7 @@ const admin = require('../config/firebase.js');
 const Pack = require('../models/Pack');
 const User = require('../models/User');
 
-const getMessageBodyFromMsgType = (msgType, packName,userName) => {
-  const messages = {
-    RCEmergencyCall: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
-    armed: `Votre centrale dans "${packName}" vient d'être armée par "${userName}"`,
-    disarmed: `Votre centrale dans "${packName}" vient d'être désarmée par "${userName}"`,
-    online: `Votre centrale dans "${packName}" vient d'être allumée`,
-    offline: `Votre centrale dans "${packName}" vient d'être éteinte`,
-    SensorAbnormal: `Une tentative d'altération d'un accessoire a été détectée à "${packName}"`,
-  };
 
-  return messages[msgType] || 'Nouvelle notification reçue';
-};
 
 const getMessageTitleFromMsgType = (msgType) => {
   switch (msgType) {
@@ -35,6 +24,22 @@ const getMessageTitleFromMsgType = (msgType) => {
       return 'Hera';
   }
 };
+
+
+const getMessageBodyFromMsgType = (msgType, packName,userName) => {
+  const messages = {
+    RCEmergencyCall: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
+    armed: `Votre centrale dans "${packName}" vient d'être armée par "${userName}"`,
+    disarmed: `Votre centrale dans "${packName}" vient d'être désarmée par "${userName}"`,
+    online: `Votre centrale dans "${packName}" vient d'être allumée`,
+    offline: `Votre centrale dans "${packName}" vient d'être éteinte`,
+    SensorAbnormal: `Une tentative d'altération d'un accessoire a été détectée à "${packName}"`,
+  };
+
+  return messages[msgType] || 'Nouvelle notification reçue';
+};
+
+
 
 
 exports.postNotification = async (req, res) => {
