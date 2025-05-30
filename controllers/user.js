@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/User');
 const UserType = require('../models/UserType');
+const PackAccess = require('../models/PackAccess');
+
 
 require('dotenv').config();
 const nodemailer = require('nodemailer');
@@ -68,8 +70,6 @@ exports.updateUserById = async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur', details: error.message });
   }
 };
-
-
 
 exports.login = (req, res, next) => {
   User.findOne({ email: req.body.email })
@@ -229,7 +229,6 @@ exports.addDeviceToken = async (req, res) => {
   }
 };
 
-
 exports.deleteDeviceToken = async (req, res) => {
   try {
     const { userId, deviceToken } = req.body;
@@ -261,6 +260,30 @@ exports.deleteDeviceToken = async (req, res) => {
     });
   } catch (error) {
     console.error('Erreur lors de la suppression du token :', error);
+    res.status(500).json({ error: 'Erreur serveur', details: error.message });
+  }
+};
+
+
+exports.deleteUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+    }
+
+    // Delete PackAccess entries related to this user
+    await PackAccess.deleteMany({ userId: id });
+
+    // Delete the user
+    await User.findByIdAndDelete(id);
+
+    res.status(200).json({ message: 'Utilisateur et accès au pack supprimés avec succès.' });
+
+  } catch (error) {
     res.status(500).json({ error: 'Erreur serveur', details: error.message });
   }
 };
