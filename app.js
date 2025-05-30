@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const userTypeRoutes = require('./routes/userType');
 const packRoutes = require('./routes/pack');
 const notificationRoutes = require('./routes/notification');
+const activityRoutes = require('./routes/activity');
 
 require('dotenv').config();
 
@@ -29,5 +30,6 @@ app.use('/api/userType', userTypeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/packs', packRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/activities', activityRoutes);
 
 module.exports = app;
