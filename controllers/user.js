@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const UserType = require('../models/UserType');
 const PackAccess = require('../models/PackAccess');
+const crypto = require('crypto');
 
 
 require('dotenv').config();
@@ -19,18 +20,26 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+function generateTempPassword(length = 12) {
+  return crypto.randomBytes(length).toString('base64').slice(0, length);
+}
+
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, phoneNumber, userType, ownerId } = req.body;
 
+    // Vérification si l'utilisateur existe déjà
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: 'Un utilisateur avec cet email existe déjà.' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Génération d'un mot de passe temporaire si aucun n'est fourni
+    const tempPassword = password || generateTempPassword();
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    const user = new User({
+    // Création de l'utilisateur
+    const newUser = new User({
       name,
       email,
       password: hashedPassword,
@@ -39,16 +48,43 @@ exports.signup = async (req, res) => {
       ownerId
     });
 
-    const savedUser = await user.save();
-    res.status(201).json({
+    const savedUser = await newUser.save();
+
+    // Préparation du contenu de l'email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Hera App : Mot de passe temporaire',
+      text: `
+Bonjour ${name},
+
+Votre compte a bien été créé sur notre plateforme.
+
+Voici vos informations de connexion temporaires :
+
+Adresse e-mail : ${email}
+Mot de passe temporaire : ${tempPassword}
+
+⚠️ Important : Pour des raisons de sécurité, veuillez vous connecter dès que possible et modifier ce mot de passe depuis votre espace personnel.
+
+Si vous n’êtes pas à l’origine de cette inscription, veuillez nous contacter immédiatement.
+      `.trim()
+    };
+
+    // Envoi de l'email
+    await transporter.sendMail(mailOptions);
+
+    return res.status(201).json({
       message: 'Utilisateur créé avec succès.',
       userId: savedUser._id
     });
 
   } catch (error) {
+    console.error('Erreur lors de l’inscription :', error);
     res.status(500).json({ error: 'Erreur serveur', details: error.message });
   }
 };
+
 
 exports.updateUserById = async (req, res) => {
   try {
@@ -60,7 +96,7 @@ exports.updateUserById = async (req, res) => {
     user.phoneNumber = phoneNumber;
     user.userType = userType;
     const updatedUser = await user.save();
-    
+
     res.status(200).json({
       message: 'Utilisateur mis à jour avec succès.',
       userId: updatedUser._id
@@ -114,7 +150,7 @@ exports.forgotPassword = (req, res) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
     const token = jwt.sign({ userId: user._id }, 'RESET_PASSWORD_SECRET', { expiresIn: '1h' });
-    const resetLink = `hera://reset-password?token=${token}`;
+    const resetLink = `hera://update-password`;
 
     const mailOptions = {
       from: process.env.EMAIL_USER,

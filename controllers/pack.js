@@ -24,6 +24,41 @@ exports.addPack = (req, res, next) => {
 };
 
 
+// Controller function to update deviceName for multiple deviceIds
+exports.updateDeviceNames = async (req, res, next) => {
+  const { updates } = req.body;
+
+  // Expecting: updates = [{ deviceId: 'id1', deviceName: 'Name1' }, ...]
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return res.status(400).json({ message: 'Updates must be a non-empty array' });
+  }
+
+  try {
+    // Use Promise.all to update each document one by one
+    const results = await Promise.all(
+      updates.map(({ deviceId, deviceName }) => {
+        if (!deviceId || typeof deviceName !== 'string') {
+          throw new Error('Each update must contain a valid deviceId and deviceName');
+        }
+
+        return Pack.updateOne(
+          { deviceId },
+          { $set: { deviceName } }
+        );
+      })
+    );
+
+    return res.status(200).json({
+      message: 'Device names updated successfully',
+      resultCount: results.length
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Error updating device names: ' + error.message });
+  }
+};
+
+
+
 exports.editUrgencyNumber = async (req, res, next) => {
   const { deviceId, urgencyNumber } = req.body;
 
@@ -48,6 +83,60 @@ exports.editUrgencyNumber = async (req, res, next) => {
     res.status(500).json({ error: 'Error updating urgency number: ' + error.message });
   }
 };
+
+// Controller function to get a pack by deviceId
+exports.findByDeviceId = async (req, res, next) => {
+  const { deviceId } = req.params;
+
+  if (!deviceId) {
+    return res.status(400).json({ message: 'deviceId parameter is required' });
+  }
+
+  try {
+    const pack = await Pack.findOne({ deviceId });
+
+    if (!pack) {
+      return res.status(404).json({ message: 'No pack found with the provided deviceId' });
+    }
+
+    res.status(200).json(pack);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching pack: ' + error.message });
+  }
+};
+
+
+// Controller function to update urgencyNumber and deviceName
+exports.update = async (req, res, next) => {
+  const { deviceId, urgencyNumber, deviceName } = req.body;
+
+  // Validate required field
+  if (!deviceId) {
+    return res.status(400).json({ message: 'deviceId is required' });
+  }
+
+  // Build update object dynamically
+  const updateFields = {};
+  if (urgencyNumber !== undefined) updateFields.urgencyNumber = urgencyNumber || "17";
+  if (deviceName !== undefined) updateFields.deviceName = deviceName;
+
+  try {
+    const updatedPack = await Pack.findOneAndUpdate(
+      { deviceId: deviceId },
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (!updatedPack) {
+      return res.status(404).json({ message: 'Pack not found with the provided deviceId' });
+    }
+
+    res.status(200).json({ message: 'Pack updated successfully', updatedPack });
+  } catch (error) {
+    res.status(500).json({ error: 'Error updating pack: ' + error.message });
+  }
+};
+
 
 
 // Controller function to get all packs

@@ -5,7 +5,6 @@ const Pack = require('../models/Pack');
 const User = require('../models/User');
 
 
-
 const getMessageTitleFromMsgType = (msgType) => {
   switch (msgType) {
     case 'RCEmergencyCall':
@@ -40,15 +39,11 @@ const getMessageBodyFromMsgType = (msgType, packName,userName) => {
 };
 
 
-
-
 exports.postNotification = async (req, res) => {
   try {
-
     const { deviceId,userName} = req.body;
-
     const pack = await Pack.findOne(
-      { 'devices.deviceId': deviceId }
+      {'deviceId': deviceId }
     ).select('_id name ownerId');
 
 
