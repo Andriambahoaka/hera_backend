@@ -50,12 +50,11 @@ exports.signup = async (req, res) => {
 
     const savedUser = await newUser.save();
 
-    // Préparation du contenu de l'email
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Hera App : Mot de passe temporaire',
-      text: `
+const mailOptions = {
+  from: process.env.EMAIL_USER,
+  to: email,
+  subject: 'Hera App : Mot de passe temporaire',
+  text: `
 Bonjour ${name},
 
 Votre compte a bien été créé sur notre plateforme.
@@ -65,16 +64,38 @@ Voici vos informations de connexion temporaires :
 Adresse e-mail : ${email}
 Mot de passe temporaire : ${tempPassword}
 
-⚠️ Important : Pour des raisons de sécurité, veuillez vous connecter dès que possible et modifier ce mot de passe depuis votre espace personnel.
+Important : Pour des raisons de sécurité, veuillez vous connecter dès que possible et modifier ce mot de passe depuis votre espace personnel.
 
 Si vous n’êtes pas à l’origine de cette inscription, veuillez nous contacter immédiatement.
-      `.trim()
-    };
+  `.trim(),
+  html: `
+    <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+      <p>Bonjour <strong>${name}</strong>,</p>
+
+      <p>Votre compte a bien été créé sur notre plateforme.</p>
+
+      <p><strong>Voici vos informations de connexion temporaires :</strong></p>
+      <ul>
+        <li><strong>Adresse e-mail :</strong> ${email}</li>
+        <li><strong>Mot de passe temporaire :</strong> ${tempPassword}</li>
+      </ul>
+
+      <p style="color: #d9534f;"><strong>⚠️ Important :</strong> Pour des raisons de sécurité, veuillez vous connecter dès que possible et modifier ce mot de passe depuis votre espace personnel.</p>
+
+      <p>Si vous n’êtes pas à l’origine de cette inscription, veuillez nous contacter immédiatement.</p>
+
+      <hr />
+      <p style="font-size: 12px; color: #777;">Cet email vous a été envoyé automatiquement par Hera App. Merci de ne pas y répondre directement.</p>
+    </div>
+  `
+};
+
 
     // Envoi de l'email
     await transporter.sendMail(mailOptions);
+    console.log("mail sent",mailOptions);
 
-    return res.status(201).json({
+    return res.status(200).json({
       message: 'Utilisateur créé avec succès.',
       userId: savedUser._id
     });

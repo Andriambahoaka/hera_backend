@@ -3,17 +3,18 @@ const PackAccess = require('../models/PackAccess');
 
 // Controller function to add a pack with devices
 exports.addPack = (req, res, next) => {
-  const { ownerId, deviceId, devicePassword } = req.body;
+  const { ownerId, deviceId, deviceName,devicePassword } = req.body;
 
   // Check if required fields are provided
-  if (!ownerId || !deviceId || !devicePassword) {
-    return res.status(400).json({ message: 'OwnerId , deviceId and devicePassword are required' });
+  if (!ownerId || !deviceId || !deviceName || !devicePassword) {
+    return res.status(400).json({ message: 'OwnerId , deviceId and deviceName,devicePassword are required' });
   }
   
   // Create a new Pack
   const newPack = new Pack({
     ownerId: ownerId,
     deviceId: deviceId,
+    deviceName : deviceName,
     devicePassword: devicePassword
   });
 
