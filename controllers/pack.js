@@ -229,15 +229,26 @@ exports.findAllPackAccessByUser = async (req, res) => {
   }
 
   try {
-    const accessList = await PackAccess.find({ userId });
+    const accessList = await PackAccess.find({ userId })
+      .populate('packId') // Populate the packId with full Pack document
+      .lean(); // Convert Mongoose documents to plain JS objects
 
     if (accessList.length === 0) {
       return res.status(404).json({ message: "Aucun accès trouvé pour cet utilisateur." });
     }
 
+    // Rename `packId` to `pack`
+    const updatedAccessList = accessList.map(item => {
+      const { packId, ...rest } = item;
+      return {
+        ...rest,
+        pack: packId
+      };
+    });
+
     res.status(200).json({
       message: "Accès trouvés avec succès.",
-      accessList
+      accessList: updatedAccessList
     });
 
   } catch (error) {
@@ -248,6 +259,7 @@ exports.findAllPackAccessByUser = async (req, res) => {
     });
   }
 };
+
 
 
 

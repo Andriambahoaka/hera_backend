@@ -290,9 +290,6 @@ exports.findAllByOwner = async (req, res) => {
 };
 
 
-
-
-
 exports.addDeviceToken = async (req, res) => {
   try {
     const { userId, deviceToken } = req.body;
