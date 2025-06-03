@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const notificationSchema = new mongoose.Schema({
   pack: {
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
-    name: { type: String, required: true },
+    deviceName: { type: String, required: true },
     ownerId: { type: mongoose.Schema.Types.ObjectId, required: true },
   },
   accessKey: {

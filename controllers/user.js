@@ -116,6 +116,7 @@ exports.updateUserById = async (req, res) => {
     user.name = name;
     user.phoneNumber = phoneNumber;
     user.userType = userType;
+    console.log("usertype",userType);
     const updatedUser = await user.save();
 
     res.status(200).json({
@@ -250,14 +251,47 @@ exports.findAllByOwner = async (req, res) => {
   const { ownerId } = req.params;
 
   try {
-    const members = await User.find({ ownerId });
-    res.status(200).json(members);
+    // 1. Fetch all users for the given ownerId
+    const users = await User.find({ ownerId }).lean();
+
+    // 2. Extract user IDs
+    const userIds = users.map(user => user._id);
+
+    // 3. Get all PackAccess for these users and populate packId
+    const allPackAccess = await PackAccess.find({ userId: { $in: userIds } })
+      .populate('packId') // this gives you full pack object
+      .lean();
+
+    // 4. Group access by userId, renaming `packId` → `pack`
+    const accessByUserId = {};
+    allPackAccess.forEach(pa => {
+      const uid = pa.userId.toString();
+      if (!accessByUserId[uid]) accessByUserId[uid] = [];
+
+      const { packId, ...rest } = pa;
+      accessByUserId[uid].push({
+        ...rest,
+        pack: packId  // rename packId to pack
+      });
+    });
+
+    // 5. Merge access list into each user
+    const enrichedUsers = users.map(user => ({
+      ...user,
+      packAccessList: accessByUserId[user._id.toString()] || []
+    }));
+
+    res.status(200).json(enrichedUsers);
   } catch (error) {
     res.status(500).json({
-      error: `Error retrieving members: ${error.message}`,
+      error: `Error retrieving members with access: ${error.message}`,
     });
   }
 };
+
+
+
+
 
 exports.addDeviceToken = async (req, res) => {
   try {

@@ -44,7 +44,7 @@ exports.postNotification = async (req, res) => {
     const { deviceId,userName} = req.body;
     const pack = await Pack.findOne(
       {'deviceId': deviceId }
-    ).select('_id name ownerId');
+    ).select('_id deviceName ownerId');
 
 
     if (!pack) {
@@ -55,7 +55,7 @@ exports.postNotification = async (req, res) => {
       ...req.body,
       pack: {
         _id: pack._id,
-        name: pack.name,
+        deviceName: pack.deviceName,
         ownerId: pack.ownerId,
       },
     });
@@ -71,7 +71,7 @@ exports.postNotification = async (req, res) => {
     }
 
     const title = getMessageTitleFromMsgType(notification.msgType);
-    const body = getMessageBodyFromMsgType(notification.msgType,pack.name,userName);
+    const body = getMessageBodyFromMsgType(notification.msgType,pack.deviceName,userName);
     const tokens = user.devicesToken;
 
     const message = {

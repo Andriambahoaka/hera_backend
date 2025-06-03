@@ -34,10 +34,7 @@ exports.findActivitiesByDate = async (req, res) => {
 
     const activities = await Activity.findByDateAndOwner(date, ownerId);
 
-    res.status(200).json({
-      message: 'Activités récupérées avec succès.',
-      activities
-    });
+    res.status(200).json(activities);
 
   } catch (error) {
     res.status(500).json({ error: 'Erreur serveur', details: error.message });
