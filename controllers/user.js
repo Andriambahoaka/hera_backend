@@ -172,13 +172,14 @@ exports.forgotPassword = (req, res) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
     const token = jwt.sign({ userId: user._id }, 'RESET_PASSWORD_SECRET', { expiresIn: '1h' });
-    const resetLink = `hera://update-password`;
+    const resetLink = `https://yourdomain.com/update-password`;
+    console.log("email",email);
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
       subject: 'Réinitialisation du mot de passe',
-      text: `Cliquez sur ce lien pour réinitialiser votre mot de passe : ${resetLink}`
+      text: `Cliquez sur ce lien pour réinitialiser votre mot de passe <a href="${resetLink}">${resetLink}</a>`
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
