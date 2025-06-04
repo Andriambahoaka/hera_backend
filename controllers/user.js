@@ -6,7 +6,6 @@ const UserType = require('../models/UserType');
 const PackAccess = require('../models/PackAccess');
 const crypto = require('crypto');
 
-
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 
@@ -28,17 +27,14 @@ exports.signup = async (req, res) => {
   try {
     const { name, email, password, phoneNumber, userType, ownerId } = req.body;
 
-    // Vérification si l'utilisateur existe déjà
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: 'Un utilisateur avec cet email existe déjà.' });
     }
 
-    // Génération d'un mot de passe temporaire si aucun n'est fourni
     const tempPassword = password || generateTempPassword();
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    // Création de l'utilisateur
     const newUser = new User({
       name,
       email,
@@ -90,8 +86,6 @@ Si vous n’êtes pas à l’origine de cette inscription, veuillez nous contact
   `
 };
 
-
-    // Envoi de l'email
     await transporter.sendMail(mailOptions);
     console.log("mail sent",mailOptions);
 
@@ -192,10 +186,8 @@ exports.forgotPassword = (req, res) => {
 };
 
 exports.updatePassword = (req, res) => {
-  // Get the token from the Authorization header
   const authHeader = req.headers['authorization'];
 
-  // Check if the Authorization header is present and starts with "Bearer"
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(400).json({ message: 'Token manquant ou mal formé' });
   }
