@@ -67,7 +67,9 @@ Si vous n’êtes pas à l’origine de cette inscription, veuillez nous contact
   html: `
     <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
 
+   <div style="text-align: center;">
     <img src="https://hera-backend-kes8.onrender.com/public/logo.png" alt="Hera App Logo" style="max-width: 150px; margin-bottom: 20px;" />
+  </div>
 
       <p>Bonjour <strong>${name}</strong>,</p>
 
@@ -169,7 +171,7 @@ exports.forgotPassword = (req, res) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
     const token = jwt.sign({ userId: user._id }, 'RESET_PASSWORD_SECRET', { expiresIn: '1h' });
-    const resetLink = `https://hera-backend-kes8.onrender.com/update-password`;
+    const resetLink = `https://hera-backend-kes8.onrender.com/deeplink?to=update-password`;
     console.log("email",email);
 
 const mailOptions = {
@@ -179,7 +181,9 @@ const mailOptions = {
   text: `Cliquez sur ce lien pour réinitialiser votre mot de passe : ${resetLink}`,
   html: `
     <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
-      <img src="https://hera-backend-kes8.onrender.com/public/logo.png" alt="Hera App Logo" style="max-width: 150px; margin-bottom: 20px;" />
+        <div style="text-align: center;">
+    <img src="https://hera-backend-kes8.onrender.com/public/logo.png" alt="Hera App Logo" style="max-width: 150px; margin-bottom: 20px;" />
+  </div>
 
       <p>Bonjour,</p>
 
