@@ -192,11 +192,10 @@ exports.updatePassword = (req, res) => {
     return res.status(400).json({ message: 'Token manquant ou mal formé' });
   }
 
-  // Extract the token from the Authorization header
-  const token = authHeader.split(' ')[1]; // Get the part after "Bearer"
-  const { newPassword } = req.body; // Assuming newPassword is sent in the body
 
-  // Verify the token using JWT
+  const token = authHeader.split(' ')[1]; 
+  const { newPassword } = req.body; 
+
   jwt.verify(token, 'RANDOM_TOKEN_SECRET', (err, decoded) => {
     if (err) {
       return res.status(400).json({ message: 'Token invalide ou expiré' + err });
