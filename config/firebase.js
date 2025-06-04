@@ -1,8 +1,8 @@
-require('dotenv').config();
 const admin = require('firebase-admin');
+const serviceAccount = require('../firebase-adminsdk.json');
 
 admin.initializeApp({
-  credential: admin.credential.cert(JSON.parse(process.env.SERVICE_ACCOUNT_JSON)),
+  credential: admin.credential.cert(serviceAccount),
 });
 
 module.exports = admin;
