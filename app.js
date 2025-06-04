@@ -31,7 +31,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/packs', packRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/activities', activityRoutes);
-// Exemple de route dans ton backend Node.js/Express
+
 app.get('/deeplink', (req, res) => {
   const to = req.query.to;
 
@@ -39,9 +39,8 @@ app.get('/deeplink', (req, res) => {
     return res.status(400).send('Paramètre "to" manquant.');
   }
 
-  // Redirige vers l'URL personnalisée de ton app
   const deepLink = `hera://${to}`;
-  res.redirect(deepLink); // Cela envoie une redirection 302 par défaut
+  res.redirect(deepLink);
 });
 
 app.listen(4200, () => console.log("Server ready on port 4200")); 
