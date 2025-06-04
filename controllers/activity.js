@@ -1,7 +1,7 @@
 const Activity = require('../models/Activity');
 exports.addActivity = async (req, res) => {
     try {
-        const { ownerId, content, timeStamp } = req.body;
+        const { ownerId, content} = req.body;
 
         if (!content) {
             return res.status(400).json({ error: 'Le contenu de l\'activité est requis.' });
@@ -9,8 +9,7 @@ exports.addActivity = async (req, res) => {
 
         const newActivity = new Activity({
             ownerId,
-            content,
-            timeStamp: timeStamp ? new Date(timeStamp) : undefined
+            content
         });
         const savedActivity = await newActivity.save();
 
@@ -28,11 +27,19 @@ exports.findActivitiesByDate = async (req, res) => {
   try {
     const { date, ownerId } = req.query;
 
-    if (!date || !ownerId) {
-      return res.status(400).json({ error: 'Les paramètres "date" et "ownerId" sont requis.' });
+    if (!ownerId) {
+      return res.status(400).json({ error: 'Le paramètre "ownerId" est requis.' });
     }
 
-    const activities = await Activity.findByDateAndOwner(date, ownerId);
+    let activities;
+
+    if (date) {
+      // Si une date est fournie, on filtre par date et propriétaire
+      activities = await Activity.findByDateAndOwner(date, ownerId);
+    } else {
+      // Sinon, on récupère toutes les activités du propriétaire
+      activities = await Activity.find({ ownerId }).sort({ createdAt: -1 });
+    }
 
     res.status(200).json(activities);
 
@@ -40,6 +47,7 @@ exports.findActivitiesByDate = async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur', details: error.message });
   }
 };
+
 
 
 

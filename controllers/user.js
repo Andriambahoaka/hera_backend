@@ -66,6 +66,9 @@ Si vous n’êtes pas à l’origine de cette inscription, veuillez nous contact
   `.trim(),
   html: `
     <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+
+    <img src="https://hera-backend-kes8.onrender.com/public/logo.png" alt="Hera App Logo" style="max-width: 150px; margin-bottom: 20px;" />
+
       <p>Bonjour <strong>${name}</strong>,</p>
 
       <p>Votre compte a bien été créé sur notre plateforme.</p>
@@ -166,15 +169,32 @@ exports.forgotPassword = (req, res) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
     const token = jwt.sign({ userId: user._id }, 'RESET_PASSWORD_SECRET', { expiresIn: '1h' });
-    const resetLink = `https://yourdomain.com/update-password`;
+    const resetLink = `https://hera-backend-kes8.onrender.com/update-password`;
     console.log("email",email);
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Réinitialisation du mot de passe',
-      text: `Cliquez sur ce lien pour réinitialiser votre mot de passe <a href="${resetLink}">${resetLink}</a>`
-    };
+const mailOptions = {
+  from: process.env.EMAIL_USER,
+  to: email,
+  subject: 'Réinitialisation du mot de passe',
+  text: `Cliquez sur ce lien pour réinitialiser votre mot de passe : ${resetLink}`,
+  html: `
+    <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+      <img src="https://hera-backend-kes8.onrender.com/public/logo.png" alt="Hera App Logo" style="max-width: 150px; margin-bottom: 20px;" />
+
+      <p>Bonjour,</p>
+
+      <p>Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous pour procéder :</p>
+
+      <p><a href="${resetLink}" style="color: #007bff;">${resetLink}</a></p>
+
+      <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail.</p>
+
+      <hr />
+      <p style="font-size: 12px; color: #777;">Cet email vous a été envoyé automatiquement par Hera App. Merci de ne pas y répondre directement.</p>
+    </div>
+  `
+};
+
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {

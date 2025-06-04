@@ -8,6 +8,7 @@ const userTypeRoutes = require('./routes/userType');
 const packRoutes = require('./routes/pack');
 const notificationRoutes = require('./routes/notification');
 const activityRoutes = require('./routes/activity');
+const path = require('path');
 
 require('dotenv').config();
 
@@ -31,6 +32,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/packs', packRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/activities', activityRoutes);
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.get('/deeplink', (req, res) => {
   const to = req.query.to;
