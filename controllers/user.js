@@ -235,6 +235,37 @@ exports.updatePassword = (req, res) => {
   });
 };
 
+exports.updateMotDePasse = (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    return res.status(400).json({ message: 'Email et nouveau mot de passe requis' });
+  }
+
+  // Find the user by email
+  User.findOne({ email: email })
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      }
+
+      // Hash the new password
+      bcrypt.hash(newPassword, 10)
+        .then(hash => {
+          user.password = hash;
+          user.firstLogin = false;
+
+          // Save the updated user
+          user.save()
+            .then(() => res.status(200).json({ message: 'Mot de passe mis à jour avec succès' }))
+            .catch(error => res.status(500).json({ error }));
+        })
+        .catch(error => res.status(500).json({ error }));
+    })
+    .catch(error => res.status(500).json({ error }));
+};
+
+
 exports.addUserType = (req, res, next) => {
   const { type_id, name } = req.body;
 
