@@ -128,6 +128,31 @@ exports.updateUserById = async (req, res) => {
   }
 };
 
+
+exports.uploadImageFile = async (req, res) => {
+  try {
+    const {id } = req.params;
+    const user = await User.findById(id);
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Save file path (e.g. /uploads/user123.jpg)
+    user.image = `/uploads/${req.file.filename}`;
+    await user.save();
+
+    res.status(200).json({
+      message: 'Image uploaded successfully.',
+      imageUrl: user.image,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Error uploading image',
+      details: error.message,
+    });
+  }
+};
+
+
 exports.login = (req, res, next) => {
   User.findOne({ email: req.body.email })
     .then(user => {
