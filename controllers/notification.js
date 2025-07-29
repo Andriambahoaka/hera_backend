@@ -54,7 +54,7 @@ exports.postNotification = async (req, res) => {
       ...notificationData, // All other fields except 'id'
       pack: {
         _id: pack._id,
-        name: pack.deviceName,       // Fix: use `name` as per schema
+        deviceName: pack.deviceName,       // Fix: use `name` as per schema
         ownerId: pack.ownerId,
       },
     });
