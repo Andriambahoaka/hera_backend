@@ -41,49 +41,42 @@ const getMessageBodyFromMsgType = (msgType, packName,userName) => {
 
 exports.postNotification = async (req, res) => {
   try {
-    const { deviceId,userName} = req.body;
-    const pack = await Pack.findOne(
-      {'deviceId': deviceId }
-    ).select('_id deviceName ownerId');
+    const { deviceId, userName, id, ...notificationData } = req.body; // Destructure 'id' to exclude it
 
-
+    // Find the pack by deviceId
+    const pack = await Pack.findOne({ deviceId }).select('_id deviceName ownerId');
     if (!pack) {
       return res.status(404).json({ error: 'Pack contenant ce deviceId introuvable.' });
     }
 
+    // Create new notification
     const notification = new Notification({
-      ...req.body,
+      ...notificationData, // All other fields except 'id'
       pack: {
         _id: pack._id,
-        deviceName: pack.deviceName,
+        name: pack.deviceName,       // Fix: use `name` as per schema
         ownerId: pack.ownerId,
       },
     });
 
     await notification.save();
 
-    const ownerId = pack.ownerId;
-
-    const user = await User.findById(ownerId);
-
+    const user = await User.findById(pack.ownerId);
     if (!user || !user.devicesToken || user.devicesToken.length === 0) {
       return res.status(404).json({ error: 'Utilisateur ou tokens introuvables.' });
     }
 
+    // Prepare notification content
     const title = getMessageTitleFromMsgType(notification.msgType);
-    const body = getMessageBodyFromMsgType(notification.msgType,pack.deviceName,userName);
-    const tokens = user.devicesToken;
+    const body = getMessageBodyFromMsgType(notification.msgType, pack.deviceName, userName);
 
     const message = {
-      notification: {
-        title,
-        body,
-      },
+      notification: { title, body },
       data: {
         deviceId: notification.deviceId,
         alarmType: notification.alarmType || '',
       },
-      tokens, // multiple tokens
+      tokens: user.devicesToken,
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
@@ -97,7 +90,10 @@ exports.postNotification = async (req, res) => {
 
   } catch (error) {
     console.error('Erreur:', error);
-    res.status(500).json({ error: 'Échec lors de la création ou de l’envoi de la notification', details: error.message });
+    res.status(500).json({
+      error: 'Échec lors de la création ou de l’envoi de la notification',
+      details: error.message,
+    });
   }
 };
 
