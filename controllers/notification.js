@@ -25,7 +25,7 @@ const getMessageTitleFromMsgType = (msgType) => {
 };
 
 
-const getMessageBodyFromMsgType = (msgType, packName,userName) => {
+const getMessageBodyFromMsgType = (msgType, packName, userName) => {
   const messages = {
     RCEmergencyCall: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
     armed: `Votre centrale dans "${packName}" vient d'être armée par "${userName}"`,
@@ -73,8 +73,8 @@ exports.postNotification = async (req, res) => {
     const message = {
       notification: { title, body },
       data: {
-        deviceId: notification.deviceId,
-        alarmType: notification.alarmType || '',
+        deviceId: String(notification.deviceId),
+        alarmType: String(notification.alarmType || ''),
       },
       tokens: user.devicesToken,
     };
