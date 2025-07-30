@@ -33,6 +33,7 @@ app.use('/api/packs', packRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/deeplink', (req, res) => {
   const to = req.query.to;
