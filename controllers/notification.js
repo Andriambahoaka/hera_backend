@@ -101,7 +101,6 @@ exports.postNotification = async (req, res) => {
 exports.findAllByOwner = async (req, res) => {
   try {
     const { ownerId } = req.params;
-
     const notifications = await Notification.find({ 'pack.ownerId': ownerId });
 
     res.status(200).json(notifications);
