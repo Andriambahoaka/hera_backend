@@ -140,6 +140,9 @@ exports.uploadImageFile = async (req, res) => {
     user.image = `/uploads/${req.file.filename}`;
     await user.save();
 
+    console.log('Uploaded file:', req.file);
+
+
     res.status(200).json({
       message: 'Image uploaded successfully.',
       imageUrl: user.image,
