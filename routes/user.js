@@ -11,6 +11,7 @@ router.delete('/device-token', userCtrl.deleteDeviceToken);
 router.delete('/:id', userCtrl.deleteUserById); 
 router.put('/:id',userCtrl.updateUserById);
 router.post('/:id/image', upload.single('image'), userCtrl.uploadImageFile);
+router.get('/:id/image', userCtrl.getUserImage);
 
 module.exports = router;
 

@@ -128,33 +128,33 @@ exports.updateUserById = async (req, res) => {
   }
 };
 
-
 exports.uploadImageFile = async (req, res) => {
   try {
-    const {id } = req.params;
+    const { id } = req.params;
     const user = await User.findById(id);
-
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Save file path (e.g. /uploads/user123.jpg)
-    user.image = `/uploads/${req.file.filename}`;
+    user.image = {
+      data: req.file.buffer,
+      mimeType: req.file.mimetype,
+    };
+
     await user.save();
 
-    console.log('Uploaded file:', req.file);
-
-
-    res.status(200).json({
-      message: 'Image uploaded successfully.',
-      imageUrl: user.image,
-    });
+    res.status(200).json({ message: 'Image saved to MongoDB' });
   } catch (error) {
-    res.status(500).json({
-      error: 'Error uploading image',
-      details: error.message,
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
+exports.getUserImage = async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user || !user.image) return res.status(404).send('Image not found');
+
+  res.set('Content-Type', user.image.mimeType); 
+  res.send(user.image.data);
+};
 
 exports.login = (req, res, next) => {
   User.findOne({ email: req.body.email })
@@ -293,7 +293,6 @@ exports.updateMotDePasse = (req, res) => {
     .catch(error => res.status(500).json({ error }));
 };
 
-
 exports.addUserType = (req, res, next) => {
   const { type_id, name } = req.body;
 
@@ -426,7 +425,6 @@ exports.deleteDeviceToken = async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur', details: error.message });
   }
 };
-
 
 exports.deleteUserById = async (req, res) => {
   try {
