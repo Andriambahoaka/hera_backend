@@ -9,10 +9,13 @@ const userSchema = mongoose.Schema({
     password: { type: String, required: true },
     phoneNumber: { type: String },
     userType: { type: Number, required: true },
-    ownerId: { type: String,default: null},
+    ownerId: { type: String, default: null },
     firstLogin: { type: Boolean, default: true },
-    devicesToken:[String],
-    image: { type: String }
+    devicesToken: [String],
+    image: {
+        data: Buffer,
+        mimeType: String,
+    }
 });
 
 userSchema.plugin(uniqueValidator);
