@@ -51,7 +51,8 @@ exports.postNotification = async (req, res) => {
 
     // Create new notification
     const notification = new Notification({
-      ...notificationData, // All other fields except 'id'
+      ...notificationData, 
+      deviceId,// All other fields except 'id'
       pack: {
         _id: pack._id,
         deviceName: pack.deviceName,       // Fix: use `name` as per schema
