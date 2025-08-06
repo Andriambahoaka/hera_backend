@@ -35,7 +35,7 @@ const getMessageBodyFromMsgType = (msgType, packName, userName) => {
     SensorAbnormal: `Une tentative d'altération d'un accessoire a été détectée à "${packName}"`,
   };
 
-  return messages[msgType] || 'Nouvelle notification reçue';
+  return messages[msgType] || `Nouvelle notification reçue : "${msgType}"`;
 };
 
 
