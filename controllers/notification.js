@@ -9,6 +9,8 @@ const getMessageTitleFromMsgType = (msgType) => {
   switch (msgType) {
     case 'RCEmergencyCall':
       return 'Intrusion détectée !';
+    case 'SIAEvent':
+      return 'Intrusion détectée !';
     case 'armed':
       return 'Activation de l\'alarme';
     case 'disarmed':
@@ -28,6 +30,7 @@ const getMessageTitleFromMsgType = (msgType) => {
 const getMessageBodyFromMsgType = (msgType, packName, userName) => {
   const messages = {
     RCEmergencyCall: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
+    SIAEvent: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
     armed: `Votre centrale dans "${packName}" vient d'être armée par "${userName}"`,
     disarmed: `Votre centrale dans "${packName}" vient d'être désarmée par "${userName}"`,
     online: `Votre centrale dans "${packName}" vient d'être allumée`,
@@ -41,6 +44,7 @@ const getMessageBodyFromMsgType = (msgType, packName, userName) => {
 
 exports.postNotification = async (req, res) => {
   try {
+    console.log("Request body:", req.body);
     const { deviceId, userName, id, ...notificationData } = req.body; // Destructure 'id' to exclude it
 
     // Find the pack by deviceId
@@ -51,7 +55,7 @@ exports.postNotification = async (req, res) => {
 
     // Create new notification
     const notification = new Notification({
-      ...notificationData, 
+      ...notificationData,
       deviceId,// All other fields except 'id'
       pack: {
         _id: pack._id,
