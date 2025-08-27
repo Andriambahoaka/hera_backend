@@ -79,7 +79,7 @@ exports.postNotification = async (req, res) => {
       notification: { title, body },
       data: {
         deviceId: String(notification.deviceId),
-        alarmType: String(notification.alarmType || ''),
+        msgType: String(notification.msgType),
       },
       tokens: user.devicesToken,
     };
