@@ -7,8 +7,8 @@ const User = require('../models/User');
 
 const getMessageTitleFromMsgType = (msgType) => {
   switch (msgType) {
-    case 'RCEmergencyCall':
-      return 'Intrusion détectée !';
+  //  case 'RCEmergencyCall':
+    //  return 'Intrusion détectée !';
     case 'AlarmLocal':
       return 'Intrusion détectée !';
     case 'armed':
