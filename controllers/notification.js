@@ -9,7 +9,7 @@ const getMessageTitleFromMsgType = (msgType) => {
   switch (msgType) {
     case 'RCEmergencyCall':
       return 'Intrusion détectée !';
-    case 'SIAEvent':
+    case 'AlarmLocal':
       return 'Intrusion détectée !';
     case 'armed':
       return 'Activation de l\'alarme';

@@ -30,6 +30,9 @@ const notificationSchema = new mongoose.Schema({
   localTime: {
     type: Number
   },
+  filePath:{
+    type: String
+  },
   alarmType: {
     type: String
   },
