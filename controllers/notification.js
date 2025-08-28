@@ -7,8 +7,6 @@ const User = require('../models/User');
 
 const getMessageTitleFromMsgType = (msgType) => {
   switch (msgType) {
-  //  case 'RCEmergencyCall':
-    //  return 'Intrusion détectée !';
     case 'AlarmLocal':
       return 'Intrusion détectée !';
     case 'armed':
@@ -29,8 +27,7 @@ const getMessageTitleFromMsgType = (msgType) => {
 
 const getMessageBodyFromMsgType = (msgType, packName, userName) => {
   const messages = {
-    RCEmergencyCall: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
-    SIAEvent: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
+    AlarmLocal: `Votre détecteur vient de se déclencher et de prendre une photo à "${packName}"`,
     armed: `Votre centrale dans "${packName}" vient d'être armée par "${userName}"`,
     disarmed: `Votre centrale dans "${packName}" vient d'être désarmée par "${userName}"`,
     online: `Votre centrale dans "${packName}" vient d'être allumée`,
