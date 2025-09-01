@@ -103,11 +103,20 @@ exports.uploadImageFile = async (req, res) => {
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // Upload buffer to Cloudinary
+    // Supprimer l'ancienne image si elle existe
+    if (user.imagePublicId) {
+      try {
+        await cloudinary.uploader.destroy(user.imagePublicId);
+      } catch (err) {
+        console.warn("Impossible de supprimer l'ancienne image :", err.message);
+      }
+    }
+
+    // Upload la nouvelle image depuis le buffer
     const uploadFromBuffer = (fileBuffer) => {
       return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { folder: "user_images" }, // optional
+          { folder: "user_images" },
           (error, result) => {
             if (result) resolve(result);
             else reject(error);
@@ -119,12 +128,13 @@ exports.uploadImageFile = async (req, res) => {
 
     const result = await uploadFromBuffer(req.file.buffer);
 
-    // Save only the imageUrl in MongoDB
+    // Sauvegarde uniquement l'URL et le public_id dans MongoDB
     user.imageUrl = result.secure_url;
+    user.imagePublicId = result.public_id; // utile si tu veux supprimer ou remplacer plus tard
     await user.save();
 
     res.status(200).json({
-      message: "Image uploaded successfully",
+      message: "Image utilisateur mise à jour avec succès",
       imageUrl: result.secure_url,
     });
   } catch (error) {
