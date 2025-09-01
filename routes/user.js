@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const userCtrl = require('../controllers/user');
-const upload = require('../middleware/upload');
+const multer = require("multer");
+const upload = multer(); 
 
 router.get('/',userCtrl.findAll);
 router.get('/owner/:ownerId',userCtrl.findAllByOwner);
