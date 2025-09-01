@@ -5,6 +5,9 @@ const User = require('../models/User');
 const UserType = require('../models/UserType');
 const PackAccess = require('../models/PackAccess');
 const crypto = require('crypto');
+const { renderTemplate } = require("../utils/emailTemplate");
+const cloudinary = require("../config/cloudinary"); // adjust path if needed
+const streamifier = require("streamifier");
 
 require('dotenv').config();
 const nodemailer = require('nodemailer');
@@ -23,13 +26,14 @@ function generateTempPassword(length = 12) {
   return crypto.randomBytes(length).toString('base64').slice(0, length);
 }
 
+
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, phoneNumber, userType, ownerId } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'Un utilisateur avec cet email existe déjà.' });
+      return res.status(400).json({ error: "Un utilisateur avec cet email existe déjà." });
     }
 
     const tempPassword = password || generateTempPassword();
@@ -41,70 +45,34 @@ exports.signup = async (req, res) => {
       password: hashedPassword,
       phoneNumber: phoneNumber || null,
       userType,
-      ownerId
+      ownerId,
     });
 
     const savedUser = await newUser.save();
 
-const mailOptions = {
-  from: process.env.EMAIL_USER,
-  to: email,
-  subject: 'Hera App : Mot de passe temporaire',
-  text: `
-Bonjour ${name},
+    // Load templates
+    const html = renderTemplate("welcomeEmail", { name, email, tempPassword }, "html");
+    const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
 
-Votre compte a bien été créé sur notre plateforme.
-
-Voici vos informations de connexion temporaires :
-
-Adresse e-mail : ${email}
-Mot de passe temporaire : ${tempPassword}
-
-Important : Pour des raisons de sécurité, veuillez vous connecter dès que possible et modifier ce mot de passe depuis votre espace personnel.
-
-Si vous n’êtes pas à l’origine de cette inscription, veuillez nous contacter immédiatement.
-  `.trim(),
-  html: `
-    <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
-
-   <div style="text-align: center;">
-    <img src="https://hera-backend-kes8.onrender.com/public/logo.png" alt="Hera App Logo" style="max-width: 150px; margin-bottom: 20px;" />
-  </div>
-
-      <p>Bonjour <strong>${name}</strong>,</p>
-
-      <p>Votre compte a bien été créé sur notre plateforme.</p>
-
-      <p><strong>Voici vos informations de connexion temporaires :</strong></p>
-      <ul>
-        <li><strong>Adresse e-mail :</strong> ${email}</li>
-        <li><strong>Mot de passe temporaire :</strong> ${tempPassword}</li>
-      </ul>
-
-      <p style="color: #d9534f;"><strong>⚠️ Important :</strong> Pour des raisons de sécurité, veuillez vous connecter dès que possible et modifier ce mot de passe depuis votre espace personnel.</p>
-
-      <p>Si vous n’êtes pas à l’origine de cette inscription, veuillez nous contacter immédiatement.</p>
-
-      <hr />
-      <p style="font-size: 12px; color: #777;">Cet email vous a été envoyé automatiquement par Hera App. Merci de ne pas y répondre directement.</p>
-    </div>
-  `
-};
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Hera App : Mot de passe temporaire",
+      text,
+      html,
+    };
 
     await transporter.sendMail(mailOptions);
-    console.log("mail sent",mailOptions);
 
     return res.status(200).json({
-      message: 'Utilisateur créé avec succès.',
-      userId: savedUser._id
+      message: "Utilisateur créé avec succès.",
+      userId: savedUser._id,
     });
-
   } catch (error) {
-    console.error('Erreur lors de l’inscription :', error);
-    res.status(500).json({ error: 'Erreur serveur', details: error.message });
+    console.error("Erreur lors de l’inscription :", error);
+    res.status(500).json({ error: "Erreur serveur", details: error.message });
   }
 };
-
 
 exports.updateUserById = async (req, res) => {
   try {
@@ -128,20 +96,37 @@ exports.updateUserById = async (req, res) => {
   }
 };
 
+
 exports.uploadImageFile = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findById(id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-    user.image = {
-      data: req.file.buffer,
-      mimeType: req.file.mimetype,
+    // Upload buffer to Cloudinary
+    const uploadFromBuffer = (fileBuffer) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "user_images" }, // optional
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+        streamifier.createReadStream(fileBuffer).pipe(stream);
+      });
     };
 
+    const result = await uploadFromBuffer(req.file.buffer);
+
+    // Save only the imageUrl in MongoDB
+    user.imageUrl = result.secure_url;
     await user.save();
 
-    res.status(200).json({ message: 'Image saved to MongoDB' });
+    res.status(200).json({
+      message: "Image uploaded successfully",
+      imageUrl: result.secure_url,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -362,7 +347,6 @@ exports.findAllByOwner = async (req, res) => {
     });
   }
 };
-
 
 exports.addDeviceToken = async (req, res) => {
   try {

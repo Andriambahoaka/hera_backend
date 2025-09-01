@@ -12,10 +12,8 @@ const userSchema = mongoose.Schema({
     ownerId: { type: String, default: null },
     firstLogin: { type: Boolean, default: true },
     devicesToken: [String],
-    image: {
-        data: Buffer,
-        mimeType: String,
-    }
+    imageUrl: [String],
+
 });
 
 userSchema.plugin(uniqueValidator);
