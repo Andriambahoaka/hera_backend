@@ -53,7 +53,7 @@ exports.signup = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return sendBadRequestError(res,"Un utilisateur avec cet email existe déjà.");
+      return sendBadRequestError(res, "Un utilisateur avec cet email existe déjà.");
     }
 
     const tempPassword = password || generateTempPassword();
@@ -83,13 +83,13 @@ exports.signup = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    return sendSuccess({
+    return sendSuccess(res, {
       message: "Utilisateur créé avec succès.",
       userId: savedUser._id,
     });
   } catch (error) {
     console.error("Erreur lors de l’inscription :", error);
-    sendInternalError(res,error.message);
+    sendInternalError(res, error.message);
   }
 };
 
@@ -110,7 +110,7 @@ exports.login = async (req, res, next) => {
 
     const token = generateToken(user._id);
 
-    res.status(200).json({
+    return sendSuccess(res,{
       token,
       user: {
         _id: user._id,
@@ -125,7 +125,7 @@ exports.login = async (req, res, next) => {
     });
   } catch (error) {
     console.error(error);
-    sendInternalError(res,error);
+    sendInternalError(res, error);
   }
 };
 
@@ -135,7 +135,7 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return sendNotFoundError(res,'Utilisateur non trouvé');
+    if (!user) return sendNotFoundError(res, 'Utilisateur non trouvé');
 
     const token = generateToken(user._id, RESET_PASSWORD_SECRET, RESET_EXPIRY);
     const resetLink = `https://hera-backend-kes8.onrender.com/deeplink?to=update-password`;
@@ -152,9 +152,9 @@ exports.forgotPassword = async (req, res) => {
       html,
     });
 
-    return sendSuccess(res,{ message: 'Email de réinitialisation envoyé' });
+    return sendSuccess(res, { message: 'Email de réinitialisation envoyé' });
   } catch (error) {
     console.error("Erreur forgotPassword:", error);
-    sendInternalError(res,error);
+    sendInternalError(res, error);
   }
 };
