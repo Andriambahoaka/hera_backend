@@ -4,7 +4,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { renderTemplate } = require("../utils/emailTemplate");
-
 const {
   sendInternalError,
   sendUnauthorizedError,
@@ -13,24 +12,13 @@ const {
   sendNotFoundError
 } = require('../utils/responseHandler');
 
-const { ERRORS, SUCCESS } = require('../utils/messages');
-
 require('dotenv').config();
 
 // =============================
 // Constants
 // =============================
-const {
-  GMAIL_USER,
-  GMAIL_PASS,
-  EMAIL_USER,
-  JWT_SECRET,
-  RESET_PASSWORD_SECRET,
-  REFRESH_SECRET
-} = process.env;
-
-const TOKEN_EXPIRY = "15m";  // access token court
-const REFRESH_EXPIRY = "7d"; // refresh token long
+const { GMAIL_USER, GMAIL_PASS, EMAIL_USER, JWT_SECRET, RESET_PASSWORD_SECRET } = process.env;
+const TOKEN_EXPIRY = "24h";
 const RESET_EXPIRY = "1h";
 
 // =============================
@@ -49,9 +37,6 @@ const transporter = nodemailer.createTransport({
 const generateToken = (userId, secret = JWT_SECRET, expiresIn = TOKEN_EXPIRY) =>
   jwt.sign({ userId }, secret, { expiresIn });
 
-const generateRefreshToken = (userId) =>
-  jwt.sign({ userId }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRY });
-
 const generateTempPassword = (length = 12) =>
   crypto.randomBytes(length).toString('base64').slice(0, length);
 
@@ -63,14 +48,13 @@ const sendMail = async (options) => {
 // Controllers
 // =============================
 
-// Signup
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, phoneNumber, userType, ownerId } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return sendBadRequestError(res, ERRORS.USER_EXISTS);
+      return sendBadRequestError(res, "Un utilisateur avec cet email existe déjà.");
     }
 
     const tempPassword = password || generateTempPassword();
@@ -90,45 +74,61 @@ exports.signup = async (req, res) => {
     const html = renderTemplate("welcomeEmail", { name, email, tempPassword }, "html");
     const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
 
-    await sendMail({
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
       to: email,
-      subject: SUCCESS.WELCOME_EMAIL_SUBJECT,
+      subject: "Hera App : Mot de passe temporaire",
       text,
       html,
-    });
+    };
+
+    await transporter.sendMail(mailOptions);
 
     return sendSuccess(res, {
-      message: SUCCESS.USER_CREATED,
+      message: "Utilisateur créé avec succès.",
       userId: savedUser._id,
     });
   } catch (error) {
-    console.error("Erreur signup:", error);
+    console.error("Erreur lors de l’inscription :", error);
     sendInternalError(res, error.message);
   }
 };
 
-// Login
-exports.login = async (req, res) => {
+
+exports.login = async (req, res, next) => {
   try {
+    console.log("JWT_SECRET:", process.env.JWT_SECRET);
+console.log("RESET_PASSWORD_SECRET:", process.env.RESET_PASSWORD_SECRET);
+console.log("CLOUDINARY_CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
+console.log("CLOUDINARY_API_KEY:", process.env.CLOUDINARY_API_KEY);
+console.log("CLOUDINARY_API_SECRET:", process.env.CLOUDINARY_API_SECRET);
+console.log("EMAIL_USER:", process.env.EMAIL_USER);
+console.log("GMAIL_PASS:", process.env.GMAIL_PASS);
+console.log("CORS_ORIGINS:", process.env.CORS_ORIGINS);
+
+
+
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return sendUnauthorizedError(res, ERRORS.INVALID_CREDENTIALS);
+    if (!user) {
+      return sendUnauthorizedError(res);
+    }
 
     const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) return sendUnauthorizedError(res, ERRORS.INVALID_CREDENTIALS);
+    if (!isValid) {
+      return sendUnauthorizedError(res);
+    }
 
-    const accessToken = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const token = generateToken(user._id);
 
-    // Sauvegarde du refresh token dans l'utilisateur
-    user.refreshToken = refreshToken;
-    await user.save();
 
-    return sendSuccess(res, {
-      message: SUCCESS.LOGIN_SUCCESS,
-      accessToken,
-      refreshToken,
+
+
+
+
+    return sendSuccess(res,{
+      token,
       user: {
         _id: user._id,
         name: user.name,
@@ -141,79 +141,37 @@ exports.login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Erreur login:", error);
-    sendInternalError(res, error.message);
+    console.error(error);
+    sendInternalError(res, error);
   }
 };
 
-// Refresh Token
-exports.refreshToken = async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) return sendBadRequestError(res, ERRORS.REFRESH_TOKEN_REQUIRED);
 
-    const user = await User.findOne({ refreshToken });
-    if (!user) return sendUnauthorizedError(res, ERRORS.INVALID_REFRESH_TOKEN);
-
-    jwt.verify(refreshToken, REFRESH_SECRET, (err, decoded) => {
-      if (err) return sendUnauthorizedError(res, ERRORS.INVALID_REFRESH_TOKEN);
-
-      const newAccessToken = generateToken(decoded.userId);
-      return sendSuccess(res, {
-        message: SUCCESS.TOKEN_REFRESHED,
-        accessToken: newAccessToken,
-      });
-    });
-  } catch (error) {
-    console.error("Erreur refreshToken:", error);
-    sendInternalError(res, error.message);
-  }
-};
-
-// Logout
-exports.logout = async (req, res) => {
-  try {
-    const { userId } = req.body;
-    if (!userId) return sendBadRequestError(res, ERRORS.USER_ID_REQUIRED);
-
-    const user = await User.findById(userId);
-    if (!user) return sendNotFoundError(res, ERRORS.USER_NOT_FOUND);
-
-    user.refreshToken = null;
-    await user.save();
-
-    return sendSuccess(res, { message: SUCCESS.LOGOUT_SUCCESS });
-  } catch (error) {
-    console.error("Erreur logout:", error);
-    sendInternalError(res, error.message);
-  }
-};
-
-// Forgot Password
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return sendNotFoundError(res, ERRORS.USER_NOT_FOUND);
+    if (!user) return sendNotFoundError(res, 'Utilisateur non trouvé');
 
     const token = generateToken(user._id, RESET_PASSWORD_SECRET, RESET_EXPIRY);
-    const resetLink = `https://hera-backend-kes8.onrender.com/deeplink?to=update-password&token=${token}`;
+   const resetLink = `https://hera-backend-kes8.onrender.com/deeplink?to=update-password&token=${token}`;
 
+    // 👇 Use renderTemplate for both HTML + text
     const context = { name: user.name || "Utilisateur", email, resetLink };
     const html = renderTemplate("resetPasswordEmail", context, "html");
     const text = renderTemplate("resetPasswordEmail", context, "txt");
 
     await sendMail({
       to: email,
-      subject: SUCCESS.RESET_EMAIL_SUBJECT,
+      subject: 'Réinitialisation du mot de passe',
       text,
       html,
     });
 
-    return sendSuccess(res, { message: SUCCESS.RESET_EMAIL_SENT });
+    return sendSuccess(res, { message: 'Email de réinitialisation envoyé' });
   } catch (error) {
     console.error("Erreur forgotPassword:", error);
-    sendInternalError(res, error.message);
+    sendInternalError(res, error);
   }
 };
