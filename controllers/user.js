@@ -188,8 +188,17 @@ exports.updatePassword = async (req, res) => {
       return sendBadRequestError(res, "Token manquant ou mal formé");
     }
 
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return sendBadRequestError(res, "Email et nouveau mot de passe requis");
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) return sendBadRequestError(res, "Utilisateur non trouvé.");
+
+
     const token = authHeader.split(' ')[1];
-    const { newPassword } = req.body;
+
 
     jwt.verify(token, process.env.JWT_SECRET || 'RANDOM_TOKEN_SECRET', async (err, decoded) => {
       if (err) return sendBadRequestError(res, "Token invalide ou expiré");
@@ -197,7 +206,7 @@ exports.updatePassword = async (req, res) => {
       const hash = await bcrypt.hash(newPassword, 10);
       await User.findByIdAndUpdate(decoded.userId, { password: hash, firstLogin: false });
 
-      return sendSuccess({ message: 'Mot de passe mis à jour' });
+      return sendSuccess(res,{ message: 'Mot de passe mis à jour' });
     });
   } catch (error) {
     sendInternalError(res, error.message);
