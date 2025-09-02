@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.hera",
+      "sha256_cert_fingerprints": [
+        "FE:33:AA:6F:5D:93:83:F2:8D:B2:91:57:7D:86:CA:F7:4C:BF:9D:3E:35:27:AE:C8:5E:29:D3:22:98:69:A6:D0"
+      ]
+    }
+  }
+]

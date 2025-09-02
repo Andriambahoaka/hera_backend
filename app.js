@@ -38,6 +38,7 @@ if (!fs.existsSync(uploadDir)) {
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static('uploads'));
+app.use('/.well-known', express.static(path.join(__dirname, '.well-known')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/userType', userTypeRoutes);
@@ -46,16 +47,23 @@ app.use('/api/packs', packRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/activities', activityRoutes);
 
-
 app.get('/deeplink', (req, res) => {
-  console.log(res);
- const { to, token } = req.query;
+  const { to, token } = req.query;
 
   if (!to) {
     return res.status(400).send('Paramètre "to" manquant.');
   }
 
-  const deepLink = token ? `hera://${to}?token=${token}` : `hera://${to}`;
+  // Ton domaine configuré pour app_links
+  const appDomain = "https://hera-backend-kes8.onrender.com"; 
+
+  // Construit l’URL universelle
+  const deepLink = token
+    ? `${appDomain}/${to}?token=${encodeURIComponent(token)}`
+    : `${appDomain}/${to}`;
+
+  console.log("Redirecting to:", deepLink);
+
   res.redirect(deepLink);
 });
 
