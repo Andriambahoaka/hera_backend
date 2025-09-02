@@ -48,13 +48,14 @@ app.use('/api/activities', activityRoutes);
 
 
 app.get('/deeplink', (req, res) => {
-  const to = req.query.to;
+  console.log(res);
+ const { to, token } = req.query;
 
   if (!to) {
     return res.status(400).send('Paramètre "to" manquant.');
   }
 
-  const deepLink = `hera://${to}`;
+  const deepLink = token ? `hera://${to}?token=${token}` : `hera://${to}`;
   res.redirect(deepLink);
 });
 

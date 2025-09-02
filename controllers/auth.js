@@ -8,7 +8,8 @@ const {
   sendInternalError,
   sendUnauthorizedError,
   sendSuccess,
-  sendBadRequestError
+  sendBadRequestError,
+  sendNotFoundError
 } = require('../utils/responseHandler');
 
 require('dotenv').config();
@@ -138,7 +139,7 @@ exports.forgotPassword = async (req, res) => {
     if (!user) return sendNotFoundError(res, 'Utilisateur non trouvé');
 
     const token = generateToken(user._id, RESET_PASSWORD_SECRET, RESET_EXPIRY);
-    const resetLink = `https://hera-backend-kes8.onrender.com/deeplink?to=update-password`;
+   const resetLink = `https://hera-backend-kes8.onrender.com/deeplink?to=update-password&token=${token}`;
 
     // 👇 Use renderTemplate for both HTML + text
     const context = { name: user.name || "Utilisateur", email, resetLink };
