@@ -1,13 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-const userCtrl = require('../controllers/user');
+const authCtrl = require('../controllers/auth');
 
-router.post('/signup',userCtrl.signup);
-router.post('/login',userCtrl.login);
-router.post('/update-password', userCtrl.updatePassword);
-router.post('/update-pass', userCtrl.updateMotDePasse);
-router.post('/forgot-password', userCtrl.forgotPassword);
-//router.post('/profile', userCtrl.getProfile);
+router.post('/signup',authCtrl.signup);
+router.post('/login',authCtrl.login);
+router.post('/forgot-password', authCtrl.forgotPassword);
 
 module.exports = router;
