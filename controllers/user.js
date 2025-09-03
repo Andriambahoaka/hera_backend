@@ -146,7 +146,12 @@ exports.findAll = async (_, res) => {
 exports.findAllByOwner = async (req, res) => {
   try {
     const { ownerId } = req.params;
-    const users = await User.find({ ownerId }).lean();
+    const users = await User.find({
+      $or: [
+        { _id: ownerId },
+        { ownerId },
+      ]
+    }).lean();
     const userIds = users.map((u) => u._id);
 
     const allPackAccess = await PackAccess.find({ userId: { $in: userIds } })
@@ -166,10 +171,7 @@ exports.findAllByOwner = async (req, res) => {
       packAccessList: accessByUserId[u._id.toString()] || [],
     }));
 
-    return sendSuccess(res, {
-      message: SUCCESS.USERS_BY_OWNER_FETCHED,
-      users: enrichedUsers,
-    });
+    return sendSuccess(res, enrichedUsers);
   } catch (error) {
     sendInternalError(res, error.message);
   }
