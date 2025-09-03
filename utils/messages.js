@@ -9,9 +9,11 @@ module.exports = {
         PASSWORD_REQUIRED: "Mot de passe requis.",
         EMAIL_PASSWORD_REQUIRED: "Email et mot de passe requis.",
         OLD_NEW_PASSWORD_REQUIRED: "Ancien et nouveau mot de passe requis.",
+        CREDENTIALS_INCORRECT : "Paire identifiant/mot de passe incorrect",
 
         // User
         USER_NOT_FOUND: "Utilisateur non trouvé.",
+        USER_EXISTS: "Un utilisateur avec cet email existe déjà.",
         USER_NOT_FOUND_BY_EMAIL: "Utilisateur introuvable.",
         USER_TYPE_REQUIRED: "type_id et name sont requis.",
         USER_ID_REQUIRED: "userId requis.",
@@ -23,7 +25,7 @@ module.exports = {
         // Generic
         UNKNOWN_ERROR: "Une erreur interne est survenue.",
 
-        USER_EXISTS: "Un utilisateur avec cet email existe déjà.",
+
         INVALID_CREDENTIALS: "Identifiants invalides.",
         REFRESH_TOKEN_REQUIRED: "Refresh token requis.",
         INVALID_REFRESH_TOKEN: "Refresh token invalide ou expiré.",

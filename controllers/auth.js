@@ -12,12 +12,14 @@ const {
   sendNotFoundError
 } = require('../utils/responseHandler');
 
+const { ERRORS, SUCCESS } = require("../utils/messages");
+
 require('dotenv').config();
 
 // =============================
 // Constants
 // =============================
-const { GMAIL_USER, GMAIL_PASS, EMAIL_USER, JWT_SECRET, RESET_PASSWORD_SECRET } = process.env;
+const { GMAIL_USER, GMAIL_PASS, EMAIL_USER, JWT_SECRET, RESET_PASSWORD_SECRET, APP_DOMAIN } = process.env;
 const TOKEN_EXPIRY = "24h";
 const RESET_EXPIRY = "1h";
 
@@ -54,7 +56,7 @@ exports.signup = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return sendBadRequestError(res, "Un utilisateur avec cet email existe déjà.");
+      return sendBadRequestError(res, ERRORS.USER_EXISTS);
     }
 
     const tempPassword = password || generateTempPassword();
@@ -77,7 +79,7 @@ exports.signup = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Hera App : Mot de passe temporaire",
+      subject: SUCCESS.WELCOME_EMAIL_SUBJECT,
       text,
       html,
     };
@@ -85,11 +87,10 @@ exports.signup = async (req, res) => {
     await transporter.sendMail(mailOptions);
 
     return sendSuccess(res, {
-      message: "Utilisateur créé avec succès.",
+      message: SUCCESS.USER_CREATED,
       userId: savedUser._id,
     });
   } catch (error) {
-    console.error("Erreur lors de l’inscription :", error);
     sendInternalError(res, error.message);
   }
 };
@@ -97,17 +98,6 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res, next) => {
   try {
-    console.log("JWT_SECRET:", process.env.JWT_SECRET);
-console.log("RESET_PASSWORD_SECRET:", process.env.RESET_PASSWORD_SECRET);
-console.log("CLOUDINARY_CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
-console.log("CLOUDINARY_API_KEY:", process.env.CLOUDINARY_API_KEY);
-console.log("CLOUDINARY_API_SECRET:", process.env.CLOUDINARY_API_SECRET);
-console.log("EMAIL_USER:", process.env.EMAIL_USER);
-console.log("GMAIL_PASS:", process.env.GMAIL_PASS);
-console.log("CORS_ORIGINS:", process.env.CORS_ORIGINS);
-
-
-
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -121,13 +111,7 @@ console.log("CORS_ORIGINS:", process.env.CORS_ORIGINS);
     }
 
     const token = generateToken(user._id);
-
-
-
-
-
-
-    return sendSuccess(res,{
+    return sendSuccess(res, {
       token,
       user: {
         _id: user._id,
@@ -152,10 +136,10 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return sendNotFoundError(res, 'Utilisateur non trouvé');
+    if (!user) return sendNotFoundError(res, ERRORS.USER_NOT_FOUND);
 
     const token = generateToken(user._id, RESET_PASSWORD_SECRET, RESET_EXPIRY);
-   const resetLink = `https://hera-backend-kes8.onrender.com/deeplink?to=update-password&token=${token}`;
+    const resetLink = `${APP_DOMAIN}/deeplink?to=update-password&token=${token}`;
 
     // 👇 Use renderTemplate for both HTML + text
     const context = { name: user.name || "Utilisateur", email, resetLink };
@@ -164,14 +148,13 @@ exports.forgotPassword = async (req, res) => {
 
     await sendMail({
       to: email,
-      subject: 'Réinitialisation du mot de passe',
+      subject: SUCCESS.RESET_EMAIL_SUBJECT,
       text,
       html,
     });
 
-    return sendSuccess(res, { message: 'Email de réinitialisation envoyé' });
+    return sendSuccess(res, { message: SUCCESS.RESET_EMAIL_SENT });
   } catch (error) {
-    console.error("Erreur forgotPassword:", error);
     sendInternalError(res, error);
   }
 };

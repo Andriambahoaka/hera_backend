@@ -1,4 +1,4 @@
-
+const { ERRORS } = require("../utils/messages");
 /**
  * Sends a generic success response.
  * @param {Object} res - The Express response object.
@@ -15,7 +15,7 @@ const sendSuccess = (res, data) => {
  * @param {string} message - The custom error message to send.
  */
 const sendBadRequestError = (res, error) => {
-  res.status(400).json({message : error});
+  res.status(400).json({ message: error });
 };
 
 /**
@@ -23,7 +23,7 @@ const sendBadRequestError = (res, error) => {
  * @param {Object} res - The Express response object.
  * @param {string} message - The custom error message to send.
  */
-const sendUnauthorizedError = (res, error = 'Paire identifiant/mot de passe incorrect') => {
+const sendUnauthorizedError = (res, error = ERRORS.CREDENTIALS_INCORRECT) => {
   res.status(401).json({ message: error });
 };
 
@@ -43,7 +43,7 @@ const sendNotFoundError = (res, message) => {
  */
 const sendInternalError = (res, error) => {
   console.error(error);
-  res.status(500).json({ message:'Une erreur interne est survenue',error : error});
+  res.status(500).json({ message: ERRORS.UNKNOWN_ERROR, error: error });
 };
 
 module.exports = {
