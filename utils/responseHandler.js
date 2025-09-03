@@ -37,6 +37,15 @@ const sendNotFoundError = (res, message) => {
 };
 
 /**
+ * Sends a 422 Unprocessable Entity error response.
+ * @param {Object} res - The Express response object.
+ * @param {string} message - The custom error message to send.
+ */
+const sendUnprocessableEntityError = (res, message) => {
+  res.status(422).json({ message });
+};
+
+/**
  * Sends a generic internal server error response.
  * @param {Object} res - The Express response object.
  * @param {Object} error - The error object or message to send.
@@ -52,4 +61,5 @@ module.exports = {
   sendUnauthorizedError,
   sendNotFoundError,
   sendInternalError,
+  sendUnprocessableEntityError
 };

@@ -1,2 +1,8 @@
 node_modules/
 .vercel
+
+# Firebase Admin SDK key
+firebase-adminsdk.json
+
+# Environment variables
+.env

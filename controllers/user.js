@@ -218,8 +218,7 @@ exports.resetPassword = async (req, res) => {
 
         const hash = await bcrypt.hash(newPassword, 10);
         await User.findByIdAndUpdate(decoded.userId, {
-          password: hash,
-          firstLogin: false,
+          password: hash
         });
 
         return sendSuccess(res, { message: SUCCESS.PASSWORD_UPDATED });
@@ -250,7 +249,7 @@ exports.updatePassword = async (req, res) => {
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch)
-      return sendBadRequestError(res, ERRORS.OLD_PASSWORD_INCORRECT);
+      return sendUnauthorizedError(res, ERRORS.OLD_PASSWORD_INCORRECT);
 
     user.password = await bcrypt.hash(newPassword, 10);
     user.firstLogin = false;
