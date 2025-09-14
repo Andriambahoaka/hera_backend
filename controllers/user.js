@@ -11,6 +11,7 @@ const {
   sendInternalError,
   sendSuccess,
   sendBadRequestError,
+  sendUnauthorizedError,
 } = require("../utils/responseHandler");
 
 const { ERRORS, SUCCESS } = require("../utils/messages");
@@ -206,6 +207,7 @@ exports.updateUserById = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const token = getTokenFromHeader(req);
+    console.log(token);
     if (!token) return sendBadRequestError(res, ERRORS.TOKEN_MISSING);
 
     jwt.verify(
@@ -227,6 +229,7 @@ exports.resetPassword = async (req, res) => {
       }
     );
   } catch (error) {
+    console.log(error);
     sendInternalError(res, error.message);
   }
 };
@@ -237,6 +240,7 @@ exports.resetPassword = async (req, res) => {
 exports.updatePassword = async (req, res) => {
   try {
     const token = getTokenFromHeader(req);
+    console.log(token);
     if (!token) return sendBadRequestError(res, ERRORS.TOKEN_MISSING);
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
