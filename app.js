@@ -131,7 +131,7 @@ app.get('/deeplink', (req, res) => {
   if (token) params.set('token', token);
 
   const deepLink = `${APP_DOMAIN}/${to}${params.toString() ? `?${params.toString()}` : ''}`;
-  console.log(deeplink);
+  console.log(deepLink);
 
   if (NODE_ENV !== 'production') {
     // Log utile en dev
@@ -142,12 +142,6 @@ app.get('/deeplink', (req, res) => {
   return res.redirect(deepLink); // 302 par défaut
 });
 
-// =============================
-// 404 handler (après toutes les routes)
-// =============================
-app.use((req, res) => {
-  res.status(404).json({ error: ERRORS.NOT_FOUND || 'Not found' });
-});
 
 // =============================
 // Connexion Mongo + start server
