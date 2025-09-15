@@ -131,6 +131,7 @@ app.get('/deeplink', (req, res) => {
   if (token) params.set('token', token);
 
   const deepLink = `${APP_DOMAIN}/${to}${params.toString() ? `?${params.toString()}` : ''}`;
+  console.log(deeplink);
 
   if (NODE_ENV !== 'production') {
     // Log utile en dev
