@@ -113,33 +113,23 @@ app.get('/healthz', (req, res) => {
 const DEEPLINK_ALLOWED = new Set(['update-password']);
 
 app.get('/deeplink', (req, res) => {
-  const toRaw = `${req.query.to || ''}`.trim();
-  if (!toRaw) {
-    return res.status(400).send(APP.DEEPLINK_TO_MISSING);
+  const { to, token } = req.query;
+
+  if (!to) {
+    return res.status(400).send('Paramètre "to" manquant.');
   }
 
-  // sanitisé: alphanum, tirets, underscore et slash (chemins simples)
-  const to = toRaw.replace(/[^a-zA-Z0-9/_-]/g, '');
+  // Ton domaine configuré pour app_links
+  const appDomain = "https://hera-backend-kes8.onrender.com"; 
 
-  if (!DEEPLINK_ALLOWED.has(to)) {
-    return res.status(400).send(APP.DEEPLINK_TO_INVALID);
-  }
+  // Construit l’URL universelle
+  const deepLink = token
+    ? `${appDomain}/${to}?token=${encodeURIComponent(token)}`
+    : `${appDomain}/${to}`;
 
-  const token = req.query.token ? String(req.query.token) : null;
+  console.log("Redirecting to:", deepLink);
 
-  const params = new URLSearchParams();
-  if (token) params.set('token', token);
-
-  const deepLink = `${APP_DOMAIN}/${to}${params.toString() ? `?${params.toString()}` : ''}`;
-  console.log(deepLink);
-
-  if (NODE_ENV !== 'production') {
-    // Log utile en dev
-    // eslint-disable-next-line no-console
-    console.log(`[deeplink] Redirecting to: ${deepLink}`);
-  }
-
-  return res.redirect(deepLink); // 302 par défaut
+  res.redirect(deepLink);
 });
 
 
