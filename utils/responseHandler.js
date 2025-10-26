@@ -68,6 +68,7 @@ const sendInternalError = (res, error) => {
 module.exports = {
   sendSuccess,
   sendBadRequestError,
+  sendConflictError,
   sendUnauthorizedError,
   sendNotFoundError,
   sendInternalError,
