@@ -9,6 +9,7 @@ const {
   sendUnauthorizedError,
   sendSuccess,
   sendBadRequestError,
+  sendConlictError,
   sendNotFoundError
 } = require('../utils/responseHandler');
 
@@ -54,11 +55,30 @@ exports.signup = async (req, res) => {
   try {
     const { name, email, password, phoneNumber, userType, ownerId } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return sendBadRequestError(res, ERRORS.USER_EXISTS);
+    // ---- 1️⃣ Vérification des champs obligatoires ----
+    if (!name || !email || !userType) {
+      return sendBadRequestError(res, "Les champs 'name', 'email' et 'userType' sont obligatoires.");
     }
 
+    // ---- 2️⃣ Validation du format de l’adresse e-mail ----
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return sendBadRequestError(res, "Le format de l'adresse e-mail est invalide.");
+    }
+
+    // ---- 3️⃣ Vérification de la validité du type d’utilisateur ----
+    const validUserTypes = [1, 2, 3]; // 1 : propriétaire, 2 : administrateur, 3 : membre
+    if (!validUserTypes.includes(userType)) {
+      return sendBadRequestError(res, "Le type d'utilisateur est invalide. Les valeurs possibles sont : 1 (propriétaire), 2 (administrateur) ou 3 (membre).");
+    }
+
+    // ---- 4️⃣ Vérification de l'existence de l'utilisateur ----
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return sendConflictError(res, ERRORS.USER_EXISTS);
+    }
+
+    // ---- 5️⃣ Création du nouvel utilisateur ----
     const tempPassword = password || generateTempPassword();
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
@@ -73,6 +93,7 @@ exports.signup = async (req, res) => {
 
     const savedUser = await newUser.save();
 
+    // ---- 6️⃣ Envoi de l’e-mail de bienvenue ----
     const html = renderTemplate("welcomeEmail", { name, email, tempPassword }, "html");
     const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
 
@@ -86,14 +107,17 @@ exports.signup = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
+    // ---- ✅ Succès ----
     return sendSuccess(res, {
       message: SUCCESS.USER_CREATED,
       userId: savedUser._id,
     });
+
   } catch (error) {
     sendInternalError(res, error.message);
   }
 };
+
 
 
 exports.login = async (req, res, next) => {
@@ -125,7 +149,6 @@ exports.login = async (req, res, next) => {
       }
     });
   } catch (error) {
-    console.error(error);
     sendInternalError(res, error);
   }
 };
