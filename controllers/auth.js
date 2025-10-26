@@ -2,6 +2,7 @@ const User = require('../models/User');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const { renderTemplate } = require("../utils/emailTemplate");
 const {
