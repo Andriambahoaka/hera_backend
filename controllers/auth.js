@@ -57,7 +57,10 @@ exports.signup = async (req, res) => {
 
     // ---- 1️⃣ Vérification des champs obligatoires ----
     if (!name || !email || !userType) {
-      return sendBadRequestError(res, "Les champs 'name', 'email' et 'userType' sont obligatoires.");
+      return sendBadRequestError(
+        res,
+        "Les champs 'name', 'email' et 'userType' sont obligatoires."
+      );
     }
 
     // ---- 2️⃣ Validation du format de l’adresse e-mail ----
@@ -66,19 +69,41 @@ exports.signup = async (req, res) => {
       return sendBadRequestError(res, "Le format de l'adresse e-mail est invalide.");
     }
 
-    // ---- 3️⃣ Vérification de la validité du type d’utilisateur ----
+    // ---- 3️⃣ Validation du type d’utilisateur ----
     const validUserTypes = [1, 2, 3]; // 1 : propriétaire, 2 : administrateur, 3 : membre
     if (!validUserTypes.includes(userType)) {
-      return sendBadRequestError(res, "Le type d'utilisateur est invalide. Les valeurs possibles sont : 1 (propriétaire), 2 (administrateur) ou 3 (membre).");
+      return sendBadRequestError(
+        res,
+        "Le type d'utilisateur est invalide. Les valeurs possibles sont : 1 (propriétaire), 2 (administrateur) ou 3 (membre)."
+      );
     }
 
-    // ---- 4️⃣ Vérification de l'existence de l'utilisateur ----
+    // ---- 4️⃣ Si userType = 2 ou 3, ownerId est obligatoire ----
+    if ((userType === 2 || userType === 3) && !ownerId) {
+      return sendBadRequestError(
+        res,
+        "Le champ 'ownerId' est obligatoire pour les utilisateurs de type administrateur ou membre."
+      );
+    }
+
+    // ---- 5️⃣ Vérification de l'existence de l’owner ----
+    if ((userType === 2 || userType === 3) && ownerId) {
+      const ownerUser = await User.findById(ownerId);
+      if (!ownerUser) {
+        return sendBadRequestError(
+          res,
+          "L'identifiant du propriétaire (ownerId) est introuvable dans la base de données."
+        );
+      }
+    }
+
+    // ---- 6️⃣ Vérification de l'existence de l'utilisateur ----
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return sendConflictError(res, ERRORS.USER_EXISTS);
     }
 
-    // ---- 5️⃣ Création du nouvel utilisateur ----
+    // ---- 7️⃣ Création du nouvel utilisateur ----
     const tempPassword = password || generateTempPassword();
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
@@ -88,12 +113,12 @@ exports.signup = async (req, res) => {
       password: hashedPassword,
       phoneNumber: phoneNumber || null,
       userType,
-      ownerId,
+      ownerId: ownerId || null,
     });
 
     const savedUser = await newUser.save();
 
-    // ---- 6️⃣ Envoi de l’e-mail de bienvenue ----
+    // ---- 8️⃣ Envoi de l’e-mail de bienvenue ----
     const html = renderTemplate("welcomeEmail", { name, email, tempPassword }, "html");
     const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
 
@@ -117,6 +142,7 @@ exports.signup = async (req, res) => {
     sendInternalError(res, error.message);
   }
 };
+
 
 
 
