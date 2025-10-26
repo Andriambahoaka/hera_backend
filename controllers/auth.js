@@ -86,13 +86,22 @@ exports.signup = async (req, res) => {
       );
     }
 
-    // ---- 5️⃣ Vérification de l'existence de l’owner ----
+    // ---- 5️⃣ Vérification de la validité et de l’existence de l’owner ----
     if ((userType === 2 || userType === 3) && ownerId) {
+      // Vérifie d’abord si l’ID a un format valide
+      if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+        return sendBadRequestError(
+          res,
+          "L'identifiant du propriétaire (ownerId) est invalide."
+        );
+      }
+
+      // Puis vérifie si l’utilisateur existe
       const ownerUser = await User.findById(ownerId);
       if (!ownerUser) {
         return sendBadRequestError(
           res,
-          "L'identifiant du propriétaire (ownerId) est introuvable dans la base de données."
+          "Aucun utilisateur propriétaire n’a été trouvé avec cet identifiant."
         );
       }
     }
