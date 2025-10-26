@@ -42,7 +42,7 @@ const sendNotFoundError = (res, message) => {
  * @param {string} message 
  */
 
-const sendConlictError = (res, error) => {
+const sendConflictError = (res, error) => {
   res.status(409).json({ message : error });
 };
 

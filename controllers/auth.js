@@ -9,7 +9,7 @@ const {
   sendUnauthorizedError,
   sendSuccess,
   sendBadRequestError,
-  sendConlictError,
+  sendConflictError,
   sendNotFoundError
 } = require('../utils/responseHandler');
 
