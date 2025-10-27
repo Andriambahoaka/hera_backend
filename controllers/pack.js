@@ -1,28 +1,68 @@
 const Pack = require('../models/Pack');
 const PackAccess = require('../models/PackAccess');
 
-// Controller function to add a pack with devices
-exports.addPack = (req, res, next) => {
-  const { ownerId, deviceId, deviceName,devicePassword } = req.body;
+// Controller function pour ajouter un pack avec sa centrale
+const User = require('../models/User'); // modèle User pour vérifier l’existence du propriétaire
+const Pack = require('../models/Pack'); // modèle Pack
 
-  // Check if required fields are provided
-  if (!ownerId || !deviceId || !deviceName || !devicePassword) {
-    return res.status(400).json({ message: 'OwnerId , deviceId and deviceName,devicePassword are required' });
+exports.addPack = async (req, res, next) => {
+  try {
+    const { ownerId, deviceId, deviceName, devicePassword } = req.body;
+
+    // ✅ Vérification des champs requis
+    if (!ownerId || !deviceId || !deviceName || !devicePassword) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Les champs ownerId, deviceId, deviceName et devicePassword sont obligatoires.'
+      });
+    }
+
+    // ✅ Vérification si le propriétaire existe dans la base
+    const owner = await User.findById(ownerId);
+    if (!owner) {
+      return res.status(404).json({
+        status: 'error',
+        message: "Le propriétaire spécifié n'existe pas dans la base de données."
+      });
+    }
+
+    // ✅ Vérification du type d'utilisateur (doit être propriétaire)
+    if (owner.userType !== 2 && owner.userType !== 3) {
+      return res.status(403).json({
+        status: 'error',
+        message: "Seuls les utilisateurs de type propriétaire peuvent ajouter un pack."
+      });
+    }
+
+    // ✅ Création du pack
+    const newPack = new Pack({
+      ownerId,
+      deviceId,
+      deviceName,
+      devicePassword
+    });
+
+    await newPack.save();
+
+    // ✅ Réponse de succès
+    return res.status(201).json({
+      status: 'success',
+      message: 'Pack ajouté avec succès.',
+      data: newPack
+    });
+
+  } catch (error) {
+    console.error('Erreur lors de la création du pack :', error);
+
+    // ✅ Gestion des erreurs serveur
+    return res.status(500).json({
+      status: 'error',
+      message: "Une erreur interne est survenue lors de l’ajout du pack.",
+      error: error.message
+    });
   }
-  
-  // Create a new Pack
-  const newPack = new Pack({
-    ownerId: ownerId,
-    deviceId: deviceId,
-    deviceName : deviceName,
-    devicePassword: devicePassword
-  });
-
-  // Save the new pack to the database
-  newPack.save()
-    .then(() => res.status(201).json({ message: 'Pack created successfully', newPack }))
-    .catch(error => res.status(400).json({ error: 'Error creating pack: ' + error.message, newPack }));
 };
+
 
 
 // Controller function to update deviceName for multiple deviceIds
