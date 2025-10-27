@@ -1,9 +1,7 @@
 const Pack = require('../models/Pack');
 const PackAccess = require('../models/PackAccess');
-
-// Controller function pour ajouter un pack avec sa centrale
 const User = require('../models/User'); // modèle User pour vérifier l’existence du propriétaire
-const Pack = require('../models/Pack'); // modèle Pack
+
 
 exports.addPack = async (req, res, next) => {
   try {
