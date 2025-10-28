@@ -131,7 +131,7 @@ exports.addDeviceToken = async (req, res) => {
 // ==================================================
 exports.findAll = async (_, res) => {
   try {
-    const users = await User.find().select('-firstLogin -devicesToken -imagePublicId');
+    const users = await User.find().select('-password -firstLogin -devicesToken -imagePublicId');
     return sendSuccess(res, {
       message: SUCCESS.USERS_FETCHED,
       users,

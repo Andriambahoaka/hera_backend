@@ -140,6 +140,8 @@ exports.signup = async (req, res) => {
       html,
     };
 
+    console.log("Sending welcome email to:", mailOptions);
+
     await transporter.sendMail(mailOptions);
 
     // ---- ✅ Succès ----
