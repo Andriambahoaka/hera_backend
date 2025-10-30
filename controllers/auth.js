@@ -90,12 +90,14 @@ exports.signup = async (req, res) => {
     const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: process.env.GMAIL_USER,
       to: email,
       subject: SUCCESS.WELCOME_EMAIL_SUBJECT,
       text,
       html,
     };
+
+    console.log("Sending welcome email to:", mailOptions);
 
     await transporter.sendMail(mailOptions);
 

@@ -127,11 +127,11 @@ exports.addDeviceToken = async (req, res) => {
 };
 
 // ==================================================
-// Find all users
+// Find all users (without firstLogin, devicesToken, imagePublicId)
 // ==================================================
 exports.findAll = async (_, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select('-password -firstLogin -devicesToken -imagePublicId');
     return sendSuccess(res, {
       message: SUCCESS.USERS_FETCHED,
       users,
