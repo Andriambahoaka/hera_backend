@@ -22,7 +22,7 @@ require('dotenv').config();
 // =============================
 // Constants
 // =============================
-const { GMAIL_USER, GMAIL_PASS,JWT_SECRET, RESET_PASSWORD_SECRET, APP_DOMAIN } = process.env;
+const { GMAIL_USER, GMAIL_PASS,BREVO_SMTP_USERNAME,BREVO_SMTP_PASSWORD,JWT_SECRET, RESET_PASSWORD_SECRET, APP_DOMAIN } = process.env;
 const TOKEN_EXPIRY = "24h";
 const RESET_EXPIRY = "1h";
 
@@ -30,18 +30,22 @@ const RESET_EXPIRY = "1h";
 // Mailer Setup
 // =============================
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
+  host: 'smtp-relay.brevo.com',  // ou smtp-relay.sendinblue.com
   port: 587,
-  secure: false,
-  auth: { user: GMAIL_USER, pass: GMAIL_PASS },
+  secure: false,                 // false pour TLS sur 587
+  auth: {
+    user: BREVO_SMTP_USERNAME, // généralement ton e-mail Brevo
+    pass: BREVO_SMTP_PASSWORD, // la SMTP key générée
+  },
+  // Optionnel : debug pour logs
+  logger: true,
+  debug: true,
 });
 
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ SMTP connection error:', error);
-  } else {
-    console.log('✅ SMTP configuration works:', success);
-  }
+// vérifier la connexion (log)
+transporter.verify((err, success) => {
+  if (err) console.error('Erreur SMTP:', err);
+  else console.log('SMTP prêt:', success);
 });
 
 
@@ -55,7 +59,7 @@ const generateTempPassword = (length = 12) =>
   crypto.randomBytes(length).toString('base64').slice(0, length);
 
 const sendMail = async (options) => {
-  return transporter.sendMail({ from: GMAIL_USER, ...options });
+  return transporter.sendMail({ from: BREVO_SMTP_USERNAME, ...options });
 };
 
 // =============================
@@ -99,7 +103,7 @@ exports.signup = async (req, res) => {
     const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
 
     const mailOptions = {
-      from: GMAIL_USER,
+      from: BREVO_SMTP_USERNAME,
       to: email,
       subject: SUCCESS.WELCOME_EMAIL_SUBJECT,
       text,
