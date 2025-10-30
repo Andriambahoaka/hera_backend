@@ -31,7 +31,7 @@ const RESET_EXPIRY = "1h";
 // =============================
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',  // ou smtp-relay.sendinblue.com
-  port: 587,
+  port: 2525,
   secure: false,                 // false pour TLS sur 587
   auth: {
     user: BREVO_SMTP_USERNAME, // généralement ton e-mail Brevo
