@@ -36,6 +36,15 @@ const transporter = nodemailer.createTransport({
   auth: { user: GMAIL_USER, pass: GMAIL_PASS },
 });
 
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ SMTP connection error:', error);
+  } else {
+    console.log('✅ SMTP configuration works:', success);
+  }
+});
+
+
 // =============================
 // Helpers
 // =============================
