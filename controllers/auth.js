@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const { renderTemplate } = require("../utils/emailTemplate");
+const { validateSignupInput } = require("../utils/validators");
 const {
   sendInternalError,
   sendUnauthorizedError,
@@ -14,8 +15,6 @@ const {
   sendNotFoundError
 } = require('../utils/responseHandler');
 
-const { validateSignupInput } = require("../utils/validators");
-
 const { ERRORS, SUCCESS } = require("../utils/messages");
 
 require('dotenv').config();
@@ -23,7 +22,7 @@ require('dotenv').config();
 // =============================
 // Constants
 // =============================
-const { GMAIL_USER, GMAIL_PASS, EMAIL_USER, JWT_SECRET, RESET_PASSWORD_SECRET, APP_DOMAIN } = process.env;
+const { GMAIL_USER, GMAIL_PASS,JWT_SECRET, RESET_PASSWORD_SECRET, APP_DOMAIN } = process.env;
 const TOKEN_EXPIRY = "24h";
 const RESET_EXPIRY = "1h";
 
@@ -47,7 +46,7 @@ const generateTempPassword = (length = 12) =>
   crypto.randomBytes(length).toString('base64').slice(0, length);
 
 const sendMail = async (options) => {
-  return transporter.sendMail({ from: EMAIL_USER, ...options });
+  return transporter.sendMail({ from: GMAIL_USER, ...options });
 };
 
 // =============================
@@ -74,7 +73,6 @@ exports.signup = async (req, res) => {
     const tempPassword = password || generateTempPassword();
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-
     // ---- 5️⃣ Création de l’utilisateur ----
     const newUser = new User({
       name,
@@ -92,14 +90,12 @@ exports.signup = async (req, res) => {
     const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
 
     const mailOptions = {
-      from: process.env.GMAIL_USER,
+      from: GMAIL_USER,
       to: email,
       subject: SUCCESS.WELCOME_EMAIL_SUBJECT,
       text,
       html,
     };
-
-    console.log("Sending welcome email to:", mailOptions);
 
     await transporter.sendMail(mailOptions);
 
