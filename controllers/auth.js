@@ -14,6 +14,8 @@ const {
   sendNotFoundError
 } = require('../utils/responseHandler');
 
+const { validateSignupInput } = require("../utils/validators");
+
 const { ERRORS, SUCCESS } = require("../utils/messages");
 
 require('dotenv').config();
