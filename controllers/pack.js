@@ -28,7 +28,7 @@ exports.addPack = async (req, res, next) => {
     if (owner.userType !== 2 && owner.userType !== 3) {
       return res.status(403).json({
         status: 'error',
-        message: "Seuls les utilisateurs de type propriétaire peuvent ajouter un pack."
+        message: "Seuls les utilisateurs de type propriétaire peuvent avoir un pack."
       });
     }
 
