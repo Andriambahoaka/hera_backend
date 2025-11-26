@@ -8,6 +8,6 @@ router.post('/login',authCtrl.login);
 router.post('/forgot-password', authCtrl.forgotPassword);
 router.get("/generate-action-token", authCtrl.generateActionToken);
 router.get("/generate-token", authCtrl.generateApiKey);
-router.get("/refresh-token", authCtrl.refreshApiKey);
+router.post("/refresh-token", authCtrl.refreshApiKey);
 
 module.exports = router;

@@ -236,7 +236,7 @@ exports.generateApiKey = async (req, res) => {
   const key = crypto.randomBytes(32).toString("hex");
   const refreshKey = crypto.randomBytes(32).toString("hex");
 
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // expire dans 24h
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // expire dans 24h
 
   const newKey = new ApiKey({ key, refreshKey, expiresAt });
   await newKey.save();
@@ -261,7 +261,7 @@ exports.refreshApiKey = async (req, res) => {
   const newKey = crypto.randomBytes(32).toString("hex");
 
   record.key = newKey;
-  record.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+  record.expiresAt = new Date(Date.now() + 7* 24 * 60 * 60 * 1000); // 24h
   await record.save();
 
   res.json({
