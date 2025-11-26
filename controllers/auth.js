@@ -18,6 +18,7 @@ const {
 const { ERRORS, SUCCESS } = require("../utils/messages");
 
 require("dotenv").config();
+const ApiKey = require("../models/ApiKey");
 
 // =============================
 // Constants
@@ -48,15 +49,6 @@ const transporter = nodemailer.createTransport({
   // Optionnel : debug pour logs
   logger: true,
   debug: true,
-});
-
-// vérifier la connexion (log)
-transporter.verify((err, success) => {
-  console.log("Vérification SMTP...", BREVO_SMTP_USERNAME);
-  console.log("Vérification SMTP...", BREVO_SMTP_PASSWORD);
-
-  if (err) console.error("Erreur SMTP:", err);
-  else console.log("SMTP prêt:", success);
 });
 
 // =============================
@@ -238,3 +230,44 @@ exports.forgotPassword = async (req, res) => {
     sendInternalError(res, error);
   }
 };
+
+
+exports.generateApiKey = async (req, res) => {
+  const key = crypto.randomBytes(32).toString("hex");
+  const refreshKey = crypto.randomBytes(32).toString("hex");
+
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // expire dans 24h
+
+  const newKey = new ApiKey({ key, refreshKey, expiresAt });
+  await newKey.save();
+
+  res.json({
+    status: 'success',
+    apiKey: key,
+    refreshKey,
+    expiresAt
+  });
+};
+
+
+exports.refreshApiKey = async (req, res) => {
+  const { refreshKey } = req.body;
+  if (!refreshKey) return res.status(400).json({ message: "refreshKey manquant" });
+
+  const record = await ApiKey.findOne({ refreshKey });
+  if (!record) return res.status(403).json({ message: "refreshKey invalide" });
+
+  // Générer une nouvelle apiKey
+  const newKey = crypto.randomBytes(32).toString("hex");
+
+  record.key = newKey;
+  record.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+  await record.save();
+
+  res.json({
+    status: "success",
+    apiKey: newKey,
+    expiresAt: record.expiresAt
+  });
+};
+

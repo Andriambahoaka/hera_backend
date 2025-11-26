@@ -1,6 +1,7 @@
 const Pack = require('../models/Pack');
 const PackAccess = require('../models/PackAccess');
 const User = require('../models/User'); // modèle User pour vérifier l’existence du propriétaire
+const mongoose = require('mongoose');
 
 
 exports.addPack = async (req, res, next) => {
@@ -15,6 +16,14 @@ exports.addPack = async (req, res, next) => {
       });
     }
 
+
+    if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+      return res.status(400).json({
+        status: "error",
+        message: "ownerId fourni est invalide. Il doit être un ObjectId MongoDB valide."
+      });
+    }
+
     // ✅ Vérification si le propriétaire existe dans la base
     const owner = await User.findById(ownerId);
     if (!owner) {
@@ -24,8 +33,10 @@ exports.addPack = async (req, res, next) => {
       });
     }
 
+    console.log(owner.userType)
+
     // ✅ Vérification du type d'utilisateur (doit être propriétaire)
-    if (owner.userType !== 2 && owner.userType !== 3) {
+    if (owner.userType == 2 || owner.userType == 3) {
       return res.status(403).json({
         status: 'error',
         message: "Seuls les utilisateurs de type propriétaire peuvent avoir un pack."
@@ -40,7 +51,7 @@ exports.addPack = async (req, res, next) => {
       devicePassword
     });
 
-    await newPack.save();
+    //await newPack.save();
 
     // ✅ Réponse de succès
     return res.status(201).json({

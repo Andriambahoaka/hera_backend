@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 const packCtrl = require('../controllers/pack');
+const apiKeyAuth = require('../middleware/apiKeyAuth')
 
-router.post('/',packCtrl.addPack);
+router.post('/',apiKeyAuth,packCtrl.addPack);
 router.get('/',packCtrl.findAll);
 router.get('/owner/:ownerId',packCtrl.findAllByOwner);
 router.get('/:deviceId',packCtrl.findByDeviceId);
