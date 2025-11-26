@@ -26,6 +26,7 @@ const ApiKey = require("../models/ApiKey");
 const {
   GMAIL_USER,
   GMAIL_PASS,
+  BREVO_EMAIL_SENDER,
   BREVO_SMTP_USERNAME,
   BREVO_SMTP_PASSWORD,
   JWT_SECRET,
@@ -82,7 +83,7 @@ const generateTempPassword = (length = 12) =>
   crypto.randomBytes(length).toString("base64").slice(0, length);
 
 const sendMail = async (options) => {
-  return transporter.sendMail({ from: BREVO_SMTP_USERNAME, ...options });
+  return transporter.sendMail({ from: BREVO_EMAIL_SENDER, ...options });
 };
 
 // =============================
@@ -136,7 +137,7 @@ exports.signup = async (req, res) => {
       ownerId: ownerId,
     });
 
-    //const savedUser = await newUser.save();
+    const savedUser = await newUser.save();
 
     // ---- 6️⃣ Envoi du mail de bienvenue ----
     const html = renderTemplate(
@@ -151,7 +152,7 @@ exports.signup = async (req, res) => {
     );
 
     const mailOptions = {
-      from: BREVO_SMTP_USERNAME,
+      from: BREVO_EMAIL_SENDER,
       to: email,
       subject: SUCCESS.WELCOME_EMAIL_SUBJECT,
       text,
@@ -163,7 +164,7 @@ exports.signup = async (req, res) => {
     // ---- ✅ Succès ----
     return sendSuccess(res, {
       message: SUCCESS.USER_CREATED,
-      //  userId: savedUser._id,
+      userId: savedUser._id,
     });
   } catch (error) {
     sendInternalError(res, error.message);

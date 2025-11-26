@@ -33,8 +33,6 @@ exports.addPack = async (req, res, next) => {
       });
     }
 
-    console.log(owner.userType)
-
     // ✅ Vérification du type d'utilisateur (doit être propriétaire)
     if (owner.userType == 2 || owner.userType == 3) {
       return res.status(403).json({
