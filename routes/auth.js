@@ -6,5 +6,6 @@ const authCtrl = require('../controllers/auth');
 router.post('/signup',authCtrl.signup);
 router.post('/login',authCtrl.login);
 router.post('/forgot-password', authCtrl.forgotPassword);
+router.get("/generate-action-token", generateActionToken);
 
 module.exports = router;

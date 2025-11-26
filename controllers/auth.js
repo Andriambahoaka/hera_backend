@@ -1,9 +1,9 @@
-const User = require('../models/User');
-const crypto = require('crypto');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
-const nodemailer = require('nodemailer');
+const User = require("../models/User");
+const crypto = require("crypto");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+const nodemailer = require("nodemailer");
 const { renderTemplate } = require("../utils/emailTemplate");
 const { validateSignupInput } = require("../utils/validators");
 const {
@@ -12,17 +12,25 @@ const {
   sendSuccess,
   sendBadRequestError,
   sendConflictError,
-  sendNotFoundError
-} = require('../utils/responseHandler');
+  sendNotFoundError,
+} = require("../utils/responseHandler");
 
 const { ERRORS, SUCCESS } = require("../utils/messages");
 
-require('dotenv').config();
+require("dotenv").config();
 
 // =============================
 // Constants
 // =============================
-const { GMAIL_USER, GMAIL_PASS,BREVO_SMTP_USERNAME,BREVO_SMTP_PASSWORD,JWT_SECRET, RESET_PASSWORD_SECRET, APP_DOMAIN } = process.env;
+const {
+  GMAIL_USER,
+  GMAIL_PASS,
+  BREVO_SMTP_USERNAME,
+  BREVO_SMTP_PASSWORD,
+  JWT_SECRET,
+  RESET_PASSWORD_SECRET,
+  APP_DOMAIN,
+} = process.env;
 const TOKEN_EXPIRY = "24h";
 const RESET_EXPIRY = "1h";
 
@@ -30,9 +38,9 @@ const RESET_EXPIRY = "1h";
 // Mailer Setup
 // =============================
 const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',  // ou smtp-relay.sendinblue.com
-  port: 2525,
-  secure: false,                 // false pour TLS sur 587
+  host: "smtp-relay.brevo.com", // ou smtp-relay.sendinblue.com
+  port: 587,
+  secure: false, // false pour TLS sur 587
   auth: {
     user: BREVO_SMTP_USERNAME, // généralement ton e-mail Brevo
     pass: BREVO_SMTP_PASSWORD, // la SMTP key générée
@@ -44,10 +52,33 @@ const transporter = nodemailer.createTransport({
 
 // vérifier la connexion (log)
 transporter.verify((err, success) => {
-  if (err) console.error('Erreur SMTP:', err);
-  else console.log('SMTP prêt:', success);
+  console.log("Vérification SMTP...", BREVO_SMTP_USERNAME);
+  console.log("Vérification SMTP...", BREVO_SMTP_PASSWORD);
+
+  if (err) console.error("Erreur SMTP:", err);
+  else console.log("SMTP prêt:", success);
 });
 
+// =============================
+// Generate Signup Token (no user required)
+// =============================
+
+exports.generateActionToken = async (req, res) => {
+  try {
+    const token = jwt.sign(
+      { purpose: "protectedAction" },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    return sendSuccess(res, {
+      message: "Token de signup généré",
+      actionToken: token,
+    });
+  } catch (error) {
+    return sendInternalError(res, error.message);
+  }
+};
 
 // =============================
 // Helpers
@@ -56,7 +87,7 @@ const generateToken = (userId, secret = JWT_SECRET, expiresIn = TOKEN_EXPIRY) =>
   jwt.sign({ userId }, secret, { expiresIn });
 
 const generateTempPassword = (length = 12) =>
-  crypto.randomBytes(length).toString('base64').slice(0, length);
+  crypto.randomBytes(length).toString("base64").slice(0, length);
 
 const sendMail = async (options) => {
   return transporter.sendMail({ from: BREVO_SMTP_USERNAME, ...options });
@@ -68,6 +99,23 @@ const sendMail = async (options) => {
 
 exports.signup = async (req, res) => {
   try {
+    const actionToken = req.headers["action-token"];
+
+    if (!actionToken) {
+      return sendUnauthorizedError(res, "Token d’action manquant");
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(actionToken, process.env.JWT_SECRET);
+    } catch (e) {
+      return sendUnauthorizedError(res, "Token d’action invalide ou expiré");
+    }
+
+    if (decoded.purpose !== "protectedAction") {
+      return sendUnauthorizedError(res, "Token non autorisé pour cette action");
+    }
+
     const { name, email, password, phoneNumber, userType, ownerId } = req.body;
 
     // ---- 1️⃣ Validation d’entrée ----
@@ -96,11 +144,19 @@ exports.signup = async (req, res) => {
       ownerId: ownerId,
     });
 
-    const savedUser = await newUser.save();
+    //const savedUser = await newUser.save();
 
     // ---- 6️⃣ Envoi du mail de bienvenue ----
-    const html = renderTemplate("welcomeEmail", { name, email, tempPassword }, "html");
-    const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
+    const html = renderTemplate(
+      "welcomeEmail",
+      { name, email, tempPassword },
+      "html"
+    );
+    const text = renderTemplate(
+      "welcomeEmail",
+      { name, email, tempPassword },
+      "txt"
+    );
 
     const mailOptions = {
       from: BREVO_SMTP_USERNAME,
@@ -115,14 +171,12 @@ exports.signup = async (req, res) => {
     // ---- ✅ Succès ----
     return sendSuccess(res, {
       message: SUCCESS.USER_CREATED,
-      userId: savedUser._id,
+      //  userId: savedUser._id,
     });
-
   } catch (error) {
     sendInternalError(res, error.message);
   }
 };
-
 
 exports.login = async (req, res, next) => {
   try {
@@ -149,14 +203,13 @@ exports.login = async (req, res, next) => {
         userType: user.userType,
         ownerId: user.ownerId,
         firstLogin: user.firstLogin,
-        imageUrl: user.imageUrl
-      }
+        imageUrl: user.imageUrl,
+      },
     });
   } catch (error) {
     sendInternalError(res, error);
   }
 };
-
 
 exports.forgotPassword = async (req, res) => {
   try {
