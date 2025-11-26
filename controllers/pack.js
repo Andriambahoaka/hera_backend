@@ -43,6 +43,15 @@ exports.addPack = async (req, res, next) => {
       });
     }
 
+    // ✅ NEW: Check if deviceId already exists
+    const existingPack = await Pack.findOne({ deviceId });
+    if (existingPack) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Un pack avec ce deviceId existe déjà.'
+      });
+    }
+
     // ✅ Création du pack
     const newPack = new Pack({
       ownerId,
@@ -51,7 +60,7 @@ exports.addPack = async (req, res, next) => {
       devicePassword
     });
 
-    //await newPack.save();
+    await newPack.save();
 
     // ✅ Réponse de succès
     return res.status(201).json({
