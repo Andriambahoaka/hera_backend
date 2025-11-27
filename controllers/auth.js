@@ -19,6 +19,7 @@ const { ERRORS, SUCCESS } = require("../utils/messages");
 
 require("dotenv").config();
 const ApiKey = require("../models/ApiKey");
+const axios = require('axios');
 
 // =============================
 // Constants
@@ -60,6 +61,40 @@ transporter.verify((err, success) => {
   else console.log("SMTP prêt:", success);
 });
 
+
+async function sendWelcomeEmail(name, email, tempPassword) {
+  try {
+    // Génération du contenu HTML et texte avec ton renderTemplate
+    const html = renderTemplate("welcomeEmail", { name, email, tempPassword }, "html");
+    const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
+
+    // Construction du payload API Brevo
+    const data = {
+      sender: { email: BREVO_EMAIL_SENDER }, // ex: 'hera.app31@gmail.com'
+      to: [{ email, name }],
+      subject: SUCCESS.WELCOME_EMAIL_SUBJECT,
+      htmlContent: html,
+      textContent: text,
+    };
+
+    // Envoi via l'API Brevo
+    const response = await axios.post(
+      'https://api.brevo.com/v3/smtp/email',
+      data,
+      {
+        headers: {
+          'api-key': process.env.BREVO_API_KEY, // clé API en variable d'environnement
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      }
+    );
+
+    console.log('Email de bienvenue envoyé avec succès', response.data);
+  } catch (error) {
+    console.error('Erreur envoi email de bienvenue', error.response?.data || error.message);
+  }
+}
 
 
 // =============================
@@ -148,28 +183,7 @@ exports.signup = async (req, res) => {
     });
 
     const savedUser = await newUser.save();
-
-    // ---- 6️⃣ Envoi du mail de bienvenue ----
-    const html = renderTemplate(
-      "welcomeEmail",
-      { name, email, tempPassword },
-      "html"
-    );
-    const text = renderTemplate(
-      "welcomeEmail",
-      { name, email, tempPassword },
-      "txt"
-    );
-
-    const mailOptions = {
-      from: BREVO_EMAIL_SENDER,
-      to: email,
-      subject: SUCCESS.WELCOME_EMAIL_SUBJECT,
-      text,
-      html,
-    };
-
-    await transporter.sendMail(mailOptions);
+    sendWelcomeEmail(name, email, tempPassword)
 
     // ---- ✅ Succès ----
     return sendSuccess(res, {
@@ -177,6 +191,7 @@ exports.signup = async (req, res) => {
       userId: savedUser._id,
     });
   } catch (error) {
+    console.log(error);
     sendInternalError(res, error.message);
   }
 };
@@ -272,7 +287,7 @@ exports.refreshApiKey = async (req, res) => {
   const newKey = crypto.randomBytes(32).toString("hex");
 
   record.key = newKey;
-  record.expiresAt = new Date(Date.now() + 7* 24 * 60 * 60 * 1000); // 24h
+  record.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 24h
   await record.save();
 
   res.json({
