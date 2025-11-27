@@ -52,6 +52,16 @@ const transporter = nodemailer.createTransport({
   debug: true,
 });
 
+transporter.verify((err, success) => {
+  console.log("Vérification SMTP...", BREVO_SMTP_USERNAME);
+  console.log("Vérification SMTP...", BREVO_SMTP_PASSWORD);
+
+  if (err) console.error("Erreur SMTP:", err);
+  else console.log("SMTP prêt:", success);
+});
+
+
+
 // =============================
 // Generate Signup Token (no user required)
 // =============================
