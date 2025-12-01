@@ -19,7 +19,7 @@ const { ERRORS, SUCCESS } = require("../utils/messages");
 
 require("dotenv").config();
 const ApiKey = require("../models/ApiKey");
-const axios = require('axios');
+const axios = require("axios");
 
 // =============================
 // Constants
@@ -42,15 +42,13 @@ const RESET_EXPIRY = "1h";
 // =============================
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com", // ou smtp-relay.sendinblue.com
-  port: 587,
-  secure: false, // false pour TLS sur 587
+  port: 465,
+  secure: true,
   auth: {
     user: BREVO_SMTP_USERNAME, // généralement ton e-mail Brevo
     pass: BREVO_SMTP_PASSWORD, // la SMTP key générée
   },
-  // Optionnel : debug pour logs
-  logger: true,
-  debug: true,
+  connectionTimeout: 10000,
 });
 
 transporter.verify((err, success) => {
@@ -61,12 +59,19 @@ transporter.verify((err, success) => {
   else console.log("SMTP prêt:", success);
 });
 
-
 async function sendWelcomeEmail(name, email, tempPassword) {
   try {
     // Génération du contenu HTML et texte avec ton renderTemplate
-    const html = renderTemplate("welcomeEmail", { name, email, tempPassword }, "html");
-    const text = renderTemplate("welcomeEmail", { name, email, tempPassword }, "txt");
+    const html = renderTemplate(
+      "welcomeEmail",
+      { name, email, tempPassword },
+      "html"
+    );
+    const text = renderTemplate(
+      "welcomeEmail",
+      { name, email, tempPassword },
+      "txt"
+    );
 
     // Construction du payload API Brevo
     const data = {
@@ -79,23 +84,25 @@ async function sendWelcomeEmail(name, email, tempPassword) {
 
     // Envoi via l'API Brevo
     const response = await axios.post(
-      'https://api.brevo.com/v3/smtp/email',
+      "https://api.brevo.com/v3/smtp/email",
       data,
       {
         headers: {
-          'api-key': process.env.BREVO_API_KEY, // clé API en variable d'environnement
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          "api-key": process.env.BREVO_API_KEY, // clé API en variable d'environnement
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
       }
     );
 
-    console.log('Email de bienvenue envoyé avec succès', response.data);
+    console.log("Email de bienvenue envoyé avec succès", response.data);
   } catch (error) {
-    console.error('Erreur envoi email de bienvenue', error.response?.data || error.message);
+    console.error(
+      "Erreur envoi email de bienvenue",
+      error.response?.data || error.message
+    );
   }
 }
-
 
 // =============================
 // Generate Signup Token (no user required)
@@ -183,7 +190,7 @@ exports.signup = async (req, res) => {
     });
 
     const savedUser = await newUser.save();
-    sendWelcomeEmail(name, email, tempPassword)
+    sendWelcomeEmail(name, email, tempPassword);
 
     // ---- ✅ Succès ----
     return sendSuccess(res, {
@@ -257,7 +264,6 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-
 exports.generateApiKey = async (req, res) => {
   const key = crypto.randomBytes(32).toString("hex");
   const refreshKey = crypto.randomBytes(32).toString("hex");
@@ -268,17 +274,17 @@ exports.generateApiKey = async (req, res) => {
   await newKey.save();
 
   res.json({
-    status: 'success',
+    status: "success",
     apiKey: key,
     refreshKey,
-    expiresAt
+    expiresAt,
   });
 };
 
-
 exports.refreshApiKey = async (req, res) => {
   const { refreshKey } = req.body;
-  if (!refreshKey) return res.status(400).json({ message: "refreshKey manquant" });
+  if (!refreshKey)
+    return res.status(400).json({ message: "refreshKey manquant" });
 
   const record = await ApiKey.findOne({ refreshKey });
   if (!record) return res.status(403).json({ message: "refreshKey invalide" });
@@ -293,7 +299,6 @@ exports.refreshApiKey = async (req, res) => {
   res.json({
     status: "success",
     apiKey: newKey,
-    expiresAt: record.expiresAt
+    expiresAt: record.expiresAt,
   });
 };
-
