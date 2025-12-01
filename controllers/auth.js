@@ -104,26 +104,6 @@ async function sendWelcomeEmail(name, email, tempPassword) {
   }
 }
 
-// =============================
-// Generate Signup Token (no user required)
-// =============================
-
-exports.generateActionToken = async (req, res) => {
-  try {
-    const token = jwt.sign(
-      { purpose: "protectedAction" },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-
-    return sendSuccess(res, {
-      message: "Token de signup généré",
-      actionToken: token,
-    });
-  } catch (error) {
-    return sendInternalError(res, error.message);
-  }
-};
 
 // =============================
 // Helpers
@@ -144,23 +124,6 @@ const sendMail = async (options) => {
 
 exports.signup = async (req, res) => {
   try {
-    const actionToken = req.headers["action-token"];
-
-    if (!actionToken) {
-      return sendUnauthorizedError(res, "Token d’action manquant");
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(actionToken, process.env.JWT_SECRET);
-    } catch (e) {
-      return sendUnauthorizedError(res, "Token d’action invalide ou expiré");
-    }
-
-    if (decoded.purpose !== "protectedAction") {
-      return sendUnauthorizedError(res, "Token non autorisé pour cette action");
-    }
-
     const { name, email, password, phoneNumber, userType, ownerId } = req.body;
 
     // ---- 1️⃣ Validation d’entrée ----
