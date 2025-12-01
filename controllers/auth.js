@@ -91,6 +91,7 @@ async function sendWelcomeEmail(name, email, tempPassword) {
           "api-key": process.env.BREVO_API_KEY, // clé API en variable d'environnement
           "Content-Type": "application/json",
           Accept: "application/json",
+          "api-key": process.env.BREVO_API_KEY
         },
       }
     );
