@@ -4,10 +4,11 @@ const router = express.Router();
 const userCtrl = require('../controllers/user');
 const multer = require("multer");
 const upload = multer(); 
+const apiKeyAuth = require("../middleware/apiKeyAuth");
 
 // Password flows
-router.post('/reset-password', userCtrl.resetPassword);  // demander un reset
-router.put('/update-password', userCtrl.updatePassword); // appliquer le nouveau mdp
+router.post('/reset-password', userCtrl.resetPassword); 
+router.put('/update-password', userCtrl.updatePassword); 
 
 // Device tokens
 router.post('/device-token', userCtrl.addDeviceToken);
@@ -21,6 +22,7 @@ router.get('/', userCtrl.findAll);
 router.get('/owner/:ownerId', userCtrl.findAllByOwner);
 router.put('/:id', userCtrl.updateUserById);
 router.delete('/:id', userCtrl.deleteUserById);
+router.get("/id", apiKeyAuth, userCtrl.getUserIdByEmail);
 
 module.exports = router;
 

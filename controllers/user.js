@@ -314,3 +314,25 @@ exports.deleteUserById = async (req, res) => {
     sendInternalError(res, error.message);
   }
 };
+
+
+exports.getUserIdByEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email)
+      return res.status(400).json({ status: "error", message: "Email manquant" });
+
+    const user = await User.findOne({ email }).select("_id");
+    if (!user)
+      return res.status(404).json({ status: "error", message: "Utilisateur introuvable" });
+
+    return res.json({
+      status: "success",
+      userId: user._id,
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: "error", message: "Erreur serveur" });
+  }
+};
