@@ -336,3 +336,36 @@ exports.getUserIdByEmail = async (req, res) => {
     return res.status(500).json({ status: "error", message: "Erreur serveur" });
   }
 };
+
+// ==================================================
+// Find all owners (users who ARE owners — i.e., have children OR are root owners)
+// ==================================================
+exports.findAllOwners = async (_, res) => {
+  try {
+    // Get all users where ownerId is null OR _id appears as ownerId of other users
+    const children = await User.find().select("ownerId").lean();
+    const childrenOwnerIds = new Set(
+      children
+        .filter(u => u.ownerId)
+        .map(u => u.ownerId.toString())
+    );
+
+    // Owners = users who appear as ownerId + users who have no ownerId (root)
+    const owners = await User.find({
+      $or: [
+        { _id: { $in: Array.from(childrenOwnerIds) } },
+        { ownerId: null }
+      ]
+    })
+      .select("-password -firstLogin -devicesToken -imagePublicId -ownerId")
+      .lean();
+
+    return sendSuccess(res, {
+      message: SUCCESS.OWNERS_FETCHED,
+      owners,
+    });
+
+  } catch (error) {
+    sendInternalError(res, error.message);
+  }
+};

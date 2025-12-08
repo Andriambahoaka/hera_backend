@@ -20,6 +20,7 @@ router.post('/:id/image', upload.single('image'), userCtrl.uploadImageFile);
 // User management
 router.get('/', userCtrl.findAll);
 router.get('/owner/:ownerId', userCtrl.findAllByOwner);
+router.get("/owners", apiKeyAuth, userCtrl.findAllOwners);
 router.put('/:id', userCtrl.updateUserById);
 router.delete('/:id', userCtrl.deleteUserById);
 router.get("/id", apiKeyAuth, userCtrl.getUserIdByEmail);

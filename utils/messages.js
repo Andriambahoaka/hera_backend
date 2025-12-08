@@ -40,6 +40,7 @@ module.exports = {
         USER_UPDATED: "Utilisateur mis à jour avec succès.",
         USER_DELETED: "Utilisateur et accès au pack supprimés avec succès.",
         USERS_FETCHED: "Users récupérés avec succès",
+        OWNERS_FETCHED: "Liste des propriétaires récupérés avec succès",
         USERS_BY_OWNER_FETCHED: "Users par owner récupérés avec succès",
         USER_TYPE_CREATED: "UserType créé avec succès",
         USER_CREATED: "Utilisateur créé avec succès.",
