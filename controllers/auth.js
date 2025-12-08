@@ -210,7 +210,6 @@ exports.forgotPassword = async (req, res) => {
     const token = generateToken(user._id, RESET_PASSWORD_SECRET, RESET_EXPIRY);
     const resetLink = `${APP_DOMAIN}/deeplink?to=update-password&token=${token}`;
 
-    // 👇 Use renderTemplate for both HTML + text
     const context = { name: user.name || "Utilisateur", email, resetLink };
     const html = renderTemplate("resetPasswordEmail", context, "html");
     const text = renderTemplate("resetPasswordEmail", context, "txt");
@@ -228,41 +227,70 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
+
+
 exports.generateApiKey = async (req, res) => {
-  const key = crypto.randomBytes(32).toString("hex");
-  const refreshKey = crypto.randomBytes(32).toString("hex");
+  try {
+    const apiKey = crypto.randomBytes(64).toString("hex");     
+    const refreshKey = crypto.randomBytes(64).toString("hex");  
 
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // expire dans 24h
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-  const newKey = new ApiKey({ key, refreshKey, expiresAt });
-  await newKey.save();
+    const newKey = new ApiKey({
+      key: apiKey,
+      refreshKey,
+      expiresAt,
+    });
 
-  res.json({
-    status: "success",
-    apiKey: key,
-    refreshKey,
-    expiresAt,
-  });
+    await newKey.save();
+
+    return res.json({
+      status: "success",
+      apiKey,
+      refreshKey,
+      expiresAt,
+    });
+
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ status: "error", message: "Erreur génération API Key" });
+  }
 };
+
 
 exports.refreshApiKey = async (req, res) => {
-  const { refreshKey } = req.body;
-  if (!refreshKey)
-    return res.status(400).json({ message: "refreshKey manquant" });
+  try {
+    const { refreshKey } = req.body;
 
-  const record = await ApiKey.findOne({ refreshKey });
-  if (!record) return res.status(403).json({ message: "refreshKey invalide" });
+    if (!refreshKey) {
+      return res.status(400).json({ status: "error", message: "refreshKey manquant" });
+    }
 
-  // Générer une nouvelle apiKey
-  const newKey = crypto.randomBytes(32).toString("hex");
+    const record = await ApiKey.findOne({ refreshKey });
 
-  record.key = newKey;
-  record.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 24h
-  await record.save();
+    if (!record) {
+      return res.status(403).json({ status: "error", message: "refreshKey invalide" });
+    }
 
-  res.json({
-    status: "success",
-    apiKey: newKey,
-    expiresAt: record.expiresAt,
-  });
+    const newApiKey = crypto.randomBytes(64).toString("hex");
+    const newRefreshKey = crypto.randomBytes(64).toString("hex");
+
+    record.key = newApiKey;
+    record.refreshKey = newRefreshKey; 
+    record.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await record.save();
+
+    return res.json({
+      status: "success",
+      apiKey: newApiKey,
+      refreshKey: newRefreshKey,
+      expiresAt: record.expiresAt,
+    });
+
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ status: "error", message: "Erreur refresh API Key" });
+  }
 };
+
