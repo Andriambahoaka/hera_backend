@@ -125,6 +125,7 @@ const sendMail = async (options) => {
 
 exports.signup = async (req, res) => {
   try {
+    req.body.ownerId = req.body.ownerId?.trim() === "" ? null : req.body.ownerId;
     const { name, email, password, phoneNumber, userType, ownerId } = req.body;
 
     // ---- 1️⃣ Validation d’entrée ----
@@ -231,8 +232,8 @@ exports.forgotPassword = async (req, res) => {
 
 exports.generateApiKey = async (req, res) => {
   try {
-    const apiKey = crypto.randomBytes(64).toString("hex");     
-    const refreshKey = crypto.randomBytes(64).toString("hex");  
+    const apiKey = crypto.randomBytes(64).toString("hex");
+    const refreshKey = crypto.randomBytes(64).toString("hex");
 
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
@@ -276,7 +277,7 @@ exports.refreshApiKey = async (req, res) => {
     const newRefreshKey = crypto.randomBytes(64).toString("hex");
 
     record.key = newApiKey;
-    record.refreshKey = newRefreshKey; 
+    record.refreshKey = newRefreshKey;
     record.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     await record.save();

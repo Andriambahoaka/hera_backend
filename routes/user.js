@@ -5,6 +5,7 @@ const userCtrl = require('../controllers/user');
 const multer = require("multer");
 const upload = multer(); 
 const apiKeyAuth = require("../middleware/apiKeyAuth");
+const mobileKeyAuth = require("../middleware/mobileKeyAuth");
 
 // Password flows
 router.post('/reset-password', userCtrl.resetPassword); 
@@ -18,11 +19,11 @@ router.delete('/device-token', userCtrl.deleteDeviceToken);
 router.post('/:id/image', upload.single('image'), userCtrl.uploadImageFile);
 
 // User management
-router.get('/', userCtrl.findAll);
-router.get('/owner/:ownerId', userCtrl.findAllByOwner);
+router.get('/', mobileKeyAuth,userCtrl.findAll);
+router.get('/owner/:ownerId', mobileKeyAuth,userCtrl.findAllByOwner);
 router.get("/owners", apiKeyAuth, userCtrl.findAllOwners);
-router.put('/:id', userCtrl.updateUserById);
-router.delete('/:id', userCtrl.deleteUserById);
+router.put('/:id', mobileKeyAuth,userCtrl.updateUserById);
+router.delete('/:id', mobileKeyAuth,userCtrl.deleteUserById);
 router.get("/id", apiKeyAuth, userCtrl.getUserIdByEmail);
 
 module.exports = router;
