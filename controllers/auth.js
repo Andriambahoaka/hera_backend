@@ -42,8 +42,11 @@ const RESET_EXPIRY = "1h";
 // =============================
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com", // ou smtp-relay.sendinblue.com
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false,
+  tls: {
+    rejectUnauthorized: false // Aide parfois à passer les pare-feu stricts
+  },
   auth: {
     user: BREVO_SMTP_USERNAME, // généralement ton e-mail Brevo
     pass: BREVO_SMTP_PASSWORD, // la SMTP key générée
@@ -52,9 +55,6 @@ const transporter = nodemailer.createTransport({
 });
 
 transporter.verify((err, success) => {
-  console.log("Vérification SMTP...", BREVO_SMTP_USERNAME);
-  console.log("Vérification SMTP...", BREVO_SMTP_PASSWORD);
-
   if (err) console.error("Erreur SMTP:", err);
   else console.log("SMTP prêt:", success);
 });
